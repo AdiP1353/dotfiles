@@ -1,0 +1,3 @@
+# bat uses the terminal's own palette (kitty/alacritty rice-minimal), like btop.
+--theme="ansi"
+--style="numbers,changes"

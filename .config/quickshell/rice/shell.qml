@@ -1,7 +1,8 @@
 // The rice's own shell pieces, in the minimal style (THEME.md §3):
 // the always-on top bar (one per screen), the app launcher, the window
 // switcher (ALT + Tab), the shortcuts window (SUPER + H) and the display
-// switcher (SUPER + P).
+// switcher (SUPER + P) and the window menu (right-click the bar's window
+// title, or SUPER + M).
 // noctalia still provides notifications, the control centre and OSDs; its own
 // bar is switched off (bar.default.enabled = false in its config).
 //
@@ -23,6 +24,7 @@ ShellRoot {
     Switcher { id: switcher }
     Shortcuts { id: shortcuts }
     DisplaySwitcher { id: display }
+    WindowMenu { id: windowMenu }
 
     IpcHandler {
         target: "switcher"
@@ -46,6 +48,14 @@ ShellRoot {
         function close(): void { display.close() }
         function apply(): void { display.apply() }
         function state(): string { return (display.open ? "open " : "closed ") + display.current + " sel:" + display.selected + " ext:" + display.external }
+    }
+
+    IpcHandler {
+        target: "windowmenu"
+        function toggle(): void { windowMenu.open ? windowMenu.close() : windowMenu.show(-1) }   // SUPER + M
+        function openAt(x: int): void { windowMenu.show(x) }
+        function close(): void { windowMenu.close() }
+        function state(): string { return (windowMenu.open ? "open " : "closed ") + windowMenu.addr + " rows:" + windowMenu.rows.map(r => r.id).join(",") + " ws:" + windowMenu.workspaces.join(",") }
     }
 
     IpcHandler {

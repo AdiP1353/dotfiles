@@ -33,7 +33,8 @@ PanelWindow {
             ["super shift arrows", "move window"],
             ["alt tab", "switch windows"],
             ["super escape", "kill (click a window)"],
-            ["super drag", "move / resize"] ] },
+            ["super drag", "move / resize"],
+            ["super m", "window menu (or right-click title)"] ] },
         { title: "apps", rows: [
             ["super space", "launcher"],
             ["super w", "wallpapers"],

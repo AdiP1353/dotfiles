@@ -6,7 +6,8 @@
 //   right   tray icons, then  wifi eduroam · vol 35% · bat 100%
 //           (dim lowercase label, bright value, dim dots between)
 // Every part is clickable and opens its own page (noctalia):
-//   workspace -> switch to it      window title -> window switcher (ALT + Tab)
+//   workspace -> switch to it      window title -> window switcher (ALT + Tab),
+//                                  right-click: window menu (move, float, close...)
 //   time/date -> calendar          net -> network      vol -> audio
 //   bat -> power                   tray icon -> the app (right-click: its menu)
 // vol also: scroll to change the volume, right-click to mute.
@@ -105,12 +106,21 @@ PanelWindow {
         }
 
         Text {
-            width: Math.min(implicitWidth, bar.width * 0.3)
+            // title + now playing must never reach the centred clock
+            width: Math.min(implicitWidth, bar.width * 0.2)
             elide: Text.ElideRight
             text: Hyprland.activeToplevel && Hyprland.activeToplevel.title ? Hyprland.activeToplevel.title.toLowerCase() : ""
             color: Theme.textDim
             font { family: Theme.font; pointSize: Theme.fontSize }
-            Hit { onClicked: Quickshell.execDetached(["qs", "-c", "rice", "ipc", "call", "switcher", "open"]) }
+            Hit {
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                onClicked: mouse => {
+                    if (mouse.button === Qt.RightButton)   // window menu: move to a workspace, float, close...
+                        Quickshell.execDetached(["qs", "-c", "rice", "ipc", "call", "windowmenu", "openAt",
+                                                 String(Math.round(parent.mapToItem(null, 0, 0).x))])
+                    else Quickshell.execDetached(["qs", "-c", "rice", "ipc", "call", "switcher", "open"])
+                }
+            }
         }
 
         // now playing: "♪ artist - title", only while a player is playing
@@ -121,7 +131,7 @@ PanelWindow {
             width: mediaText.width; height: mediaText.implicitHeight
             Text {
                 id: mediaText
-                width: Math.min(implicitWidth, 300)
+                width: Math.min(implicitWidth, bar.width * 0.12)
                 elide: Text.ElideRight
                 text: media.player ? "\u266a " + ((media.player.trackArtist ? media.player.trackArtist + " - " : "")
                                      + (media.player.trackTitle || media.player.identity)).toLowerCase() : ""

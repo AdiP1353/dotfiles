@@ -1,0 +1,62 @@
+/* Firefox's own pages (settings, add-ons, about:...) in the rice's minimal
+ * style (THEME.md §3): wallpaper colours from rice-colors.css, JetBrains Mono,
+ * square corners, plain 2px boxes, accent only on focus and selection.
+ * Websites are left alone. */
+
+@import url("rice-colors.css");
+
+@-moz-document url-prefix("about:"), url-prefix("chrome://") {
+  :root {
+    --background-color-canvas: var(--rice-surface) !important;
+    --background-color-box: var(--rice-surface) !important;
+    --text-color: var(--rice-text) !important;
+    --text-color-deemphasized: var(--rice-text-dim) !important;
+    --border-color: var(--rice-outline) !important;
+    --border-color-interactive: var(--rice-text-dim) !important;
+    --border-color-interactive-hover: var(--rice-text) !important;
+    --border-color-interactive-active: var(--rice-text) !important;
+    --border-color-selected: var(--rice-primary) !important;
+    --color-accent-primary: var(--rice-primary) !important;
+    --color-accent-primary-hover: var(--rice-primary) !important;
+    --color-accent-primary-active: var(--rice-primary) !important;
+    --focus-outline-color: var(--rice-primary) !important;
+    --link-color: var(--rice-primary) !important;
+    --link-color-hover: var(--rice-text) !important;
+
+    /* buttons: no fills, a 2px box (the "primary" one too) */
+    --button-background-color: transparent !important;
+    --button-background-color-hover: transparent !important;
+    --button-background-color-active: transparent !important;
+    --button-background-color-primary: transparent !important;
+    --button-background-color-primary-hover: transparent !important;
+    --button-background-color-primary-active: transparent !important;
+    --button-text-color: var(--rice-text) !important;
+    --button-text-color-primary: var(--rice-text) !important;
+    --button-border-color: var(--rice-text-dim) !important;
+    --button-border-color-primary: var(--rice-text-dim) !important;
+
+    /* text fields: the launcher's 2px box */
+    --input-background-color: transparent !important;
+    --input-border-color: var(--rice-text-dim) !important;
+
+    --table-row-background-color: var(--rice-surface) !important;
+    --table-row-background-color-alternate: var(--rice-surface-container) !important;
+
+    --border-radius-xsmall: 0 !important;
+    --border-radius-small: 0 !important;
+    --border-radius-medium: 0 !important;
+    --border-radius-large: 0 !important;
+    --border-radius-xlarge: 0 !important;
+    --input-border-radius: 0 !important;
+  }
+
+  body, button, input, select, textarea, :host {
+    font-family: "JetBrainsMono Nerd Font", monospace !important;
+  }
+
+  button, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea {
+    border-width: 2px !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+}

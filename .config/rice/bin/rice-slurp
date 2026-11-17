@@ -1,0 +1,9 @@
+#!/bin/sh
+# slurp (screen region picker) in the rice's colours: the selection border is
+# the accent at 2px (selection = accent), the rest of the screen dims a little,
+# no fill, JetBrains Mono for the size label. Arguments pass through to slurp.
+c="$HOME/.local/state/rice/colors.json"
+get() { jq -r ".$1 // empty" "$c" 2>/dev/null | tr -d '#'; }
+primary=$(get primary); surface=$(get surface); text=$(get on_surface)
+exec slurp -w 2 -c "#${primary:-8ad0ee}ff" -b "#${surface:-111111}66" -s "#00000000" \
+    -B "#${text:-dddddd}33" -F "JetBrainsMono Nerd Font" "$@"

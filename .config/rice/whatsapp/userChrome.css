@@ -1,0 +1,2 @@
+/* WhatsApp as an app window: no tabs or toolbars, just the page. */
+#TabsToolbar, #nav-bar, #PersonalToolbar, #sidebar-box, #titlebar { visibility: collapse !important; }

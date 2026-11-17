@@ -26,6 +26,7 @@ post_hook   = "bash $XDG_CONFIG_HOME/rice-greeter/sync-wallpaper.sh"
 [theme.templates.user.rice_firefox]
 input_path  = "$XDG_CONFIG_HOME/noctalia/templates/rice-firefox.css"
 output_path = "$XDG_CONFIG_HOME/rice/firefox/rice-colors.css"
+post_hook   = "sh $XDG_CONFIG_HOME/rice/firefox/sync-wallpaper.sh"
 
 # GNOME Text Editor (and any GtkSourceView 5 app): a "rice" colour scheme.
 [theme.templates.user.rice_gtksourceview]
@@ -45,3 +46,8 @@ output_path = "$XDG_CONFIG_HOME/vesktop/themes/noctalia.theme.css"
 [theme.templates.user.rice_spicetify]
 input_path  = "$XDG_CONFIG_HOME/noctalia/templates/rice-spicetify.ini"
 output_path = "$XDG_CONFIG_HOME/spicetify/Themes/Rice/color.ini"
+
+# mpv (replaces VLC): on-screen controls in the wallpaper's colours.
+[theme.templates.user.rice_mpv]
+input_path  = "$XDG_CONFIG_HOME/noctalia/templates/rice-mpv-osc.conf"
+output_path = "$XDG_CONFIG_HOME/mpv/script-opts/osc.conf"

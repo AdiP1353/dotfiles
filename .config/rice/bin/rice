@@ -7,7 +7,8 @@
 #   rice install          first-time setup on a new machine: links, the
 #                         automatic re-apply units, then `rice apply`
 #
-# Parts: colors gtk firefox obsidian spotify discord editor launcher greeter
+# Parts: colors gtk desktop firefox web obsidian spotify discord editor terminal
+#        launcher greeter qt video cursor
 #
 # Runs by itself: at login and every 6 hours (rice-apply.timer), right after
 # a Spotify update (rice-spotify.path), and after pacman updates the themed
@@ -195,7 +196,60 @@ part_greeter() {
     [ "$same" = 1 ] && ok "installed copy is current" || warn "login screen is out of date: sudo $src/install.sh"
 }
 
-ALL_PARTS=(colors gtk firefox obsidian spotify discord editor launcher greeter)
+
+# ---------------------------------------------------------------- notifications, sounds, file picker
+part_desktop() {
+    say "notifications / sounds / file picker"
+    if command -v noctalia >/dev/null; then
+        local cfg; cfg=$(noctalia msg config-get notification 2>/dev/null)
+        if printf '%s' "$cfg" | grep -q "border_width = 2" && printf '%s' "$cfg" | grep -q "border_color = 'on_surface_variant'" && printf '%s' "$cfg" | grep -q "background_opacity = 1"; then
+            ok "notifications: solid 2px box"
+        elif [ "$MODE" = apply ] && [ -n "$cfg" ]; then
+            noctalia msg config-set notification.border_width 2 >/dev/null
+            noctalia msg config-set notification.border_color "'on_surface_variant'" >/dev/null
+            noctalia msg config-set notification.background_opacity 1 >/dev/null
+            fixed "notifications: solid 2px box"
+        else warn "notifications are not the rice's 2px box"; fi
+    fi
+    [ -f "$HOME/.local/share/sounds/rice/index.theme" ] && ok "sound theme" || {
+        [ "$MODE" = apply ] && mkdir -p "$HOME/.local/share/sounds" && ln -sfn "$RICE/sounds/rice" "$HOME/.local/share/sounds/rice" && fixed "sound theme linked" || warn "sound theme not linked"; }
+    gset org.gnome.desktop.sound theme-name rice
+    grep -q 'FileChooser=gtk' "$HOME/.config/xdg-desktop-portal/hyprland-portals.conf" 2>/dev/null && ok "one GTK file picker" || warn "file picker portal is not set to gtk"
+    [ -x "$HOME/.local/bin/rice-slurp" ] && ok "screenshot selection colours" || link_to "$HOME/.local/bin/rice-slurp" "$RICE/bin/rice-slurp"
+}
+
+# ---------------------------------------------------------------- Firefox new tab, WhatsApp web app
+part_web() {
+    say "firefox new tab / whatsapp"
+    if [ -f /usr/lib/firefox/rice.cfg ]; then ok "new tab page (autoconfig)"
+    else warn "new tab page not installed: sudo $RICE/system/install.sh"; fi
+    [ -e "$RICE/firefox/wallpaper.jpg" ] && ok "new tab wallpaper" || { [ "$MODE" = apply ] && sh "$RICE/firefox/sync-wallpaper.sh" && fixed "new tab wallpaper" || warn "new tab wallpaper missing"; }
+    local p; p=$(ff_profile) || true
+    if [ -n "$p" ] && jq -e '.addons[] | select(.id == "momentum@momentumdash.com" and .active)' "$p/extensions.json" >/dev/null 2>&1; then
+        if [ "$MODE" = apply ] && ! running firefox; then
+            cp "$p/extensions.json" "$p/extensions.json.bak-rice"
+            jq '(.addons[] | select(.id == "momentum@momentumdash.com")) |= (.active = false | .userDisabled = true)' "$p/extensions.json.bak-rice" > "$p/extensions.json" \
+                && rm -f "$p/addonStartup.json.lz4" && fixed "Momentum turned off (it replaced the new tab page)"
+        else warn "Momentum still replaces the new tab page; close Firefox and run: rice apply web"; fi
+    else ok "nothing replaces the new tab page"; fi
+    local wp="$HOME/.local/share/rice/whatsapp-profile"
+    mkdir -p "$wp" 2>/dev/null
+    link_to "$wp/chrome" "$RICE/whatsapp"
+    link_to "$wp/user.js" "$RICE/whatsapp/user.js"
+    grep -q "rice/whatsapp/whatsapp.sh" "$HOME/.local/share/applications/whatsapp-linux-desktop.desktop" 2>/dev/null \
+        && ok "WhatsApp opens as the themed web app" || warn "WhatsApp launcher entry is not the web app"
+}
+
+# ---------------------------------------------------------------- terminal tools
+part_terminal() {
+    say "terminal tools"
+    grep -q 'FZF_DEFAULT_OPTS' "$HOME/.config/fish/config.fish" 2>/dev/null && ok "fzf uses the terminal palette" || warn "fzf options missing from fish config"
+    grep -q 'theme="ansi"' "$HOME/.config/bat/config" 2>/dev/null && ok "bat uses the terminal palette" || warn "bat theme is not ansi"
+    grep -q '^color_theme = "TTY"' "$HOME/.config/btop/btop.conf" 2>/dev/null && ok "btop uses the terminal palette" || {
+        [ "$MODE" = apply ] && sed -i -E 's/^color_theme = .*/color_theme = "TTY"/' "$HOME/.config/btop/btop.conf" && fixed "btop palette" || warn "btop theme is not TTY"; }
+}
+
+ALL_PARTS=(colors gtk desktop firefox web obsidian spotify discord editor terminal launcher greeter)
 run_parts() {
     local parts=("$@"); [ ${#parts[@]} -gt 0 ] || parts=("${ALL_PARTS[@]}")
     # Spotify first: noctalia's template hook also runs Spicetify, and two

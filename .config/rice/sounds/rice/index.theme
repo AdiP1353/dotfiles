@@ -1,0 +1,8 @@
+[Sound Theme]
+Name=Rice
+Comment=Quiet, short tones for the minimal rice (anything missing comes from freedesktop)
+Inherits=freedesktop
+Directories=stereo
+
+[stereo]
+OutputProfile=stereo

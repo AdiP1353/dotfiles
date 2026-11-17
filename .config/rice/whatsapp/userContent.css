@@ -1,0 +1,5 @@
+/* WhatsApp Web in the rice: JetBrains Mono, dark (WhatsApp follows the dark
+ * system setting). Profile pictures and message bubbles keep their shapes. */
+@-moz-document domain("web.whatsapp.com") {
+  body, button, input, textarea, div, span { font-family: "JetBrainsMono Nerd Font", monospace !important; }
+}

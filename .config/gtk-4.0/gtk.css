@@ -6,3 +6,38 @@
 * {
   border-radius: 0;
 }
+
+/* Buttons and text fields: the rice's one kind of box (THEME.md §3).
+   No fills, not even the accent "suggested" one: a plain 2px border that
+   brightens on hover; the accent only for keyboard focus and for checked
+   toggles. Flat header/toolbar buttons stay flat. */
+button:not(.flat):not(.titlebutton):not(.link):not(.circular),
+button.suggested-action, button.destructive-action, button.opaque {
+  background: none;
+  background-image: none;
+  box-shadow: none;
+  border: 2px solid alpha(@window_fg_color, 0.55);
+  color: @window_fg_color;
+}
+button.destructive-action { color: @destructive_bg_color; }
+button:not(.flat):not(.titlebutton):not(.link):not(.circular):hover,
+button.suggested-action:hover, button.destructive-action:hover {
+  background: none;
+  border-color: @window_fg_color;
+}
+button:not(.flat):active, button.suggested-action:active { background: alpha(@window_fg_color, 0.08); }
+button:checked:not(.flat) { background: none; border-color: @accent_color; color: @window_fg_color; }
+
+entry, spinbutton:not(.vertical) {
+  background: none;
+  box-shadow: none;
+  border: 2px solid alpha(@window_fg_color, 0.55);
+  outline: none;
+}
+
+button:not(.flat):focus-visible, button.suggested-action:focus-visible { outline: none; border-color: @accent_color; }
+entry:focus-within, spinbutton:focus-within { border-color: @accent_color; box-shadow: none; outline: none; }
+
+/* press: the rice's 0.96 (THEME §4); GTK drops it when animations are off */
+button:not(.flat) { transition: transform 150ms cubic-bezier(0.23, 1, 0.32, 1), border-color 150ms ease; }
+button:not(.flat):not(:disabled):active { transform: scale(0.96); }

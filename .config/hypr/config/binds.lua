@@ -97,6 +97,7 @@ hl.bind("ALT + Tab",           hl.dsp.exec_cmd("qs -c rice ipc call switcher nex
 hl.bind("ALT + SHIFT + Tab",   hl.dsp.exec_cmd("qs -c rice ipc call switcher prev"))
 -- Shortcuts window (~/.config/quickshell/rice/Shortcuts.qml)
 hl.bind(mainMod .. " + H",     hl.dsp.exec_cmd("qs -c rice ipc call shortcuts toggle"))
+hl.bind(mainMod .. " + M",     hl.dsp.exec_cmd("qs -c rice ipc call windowmenu toggle"))
 hl.bind(mainMod .. " + Tab",   hl.dsp.exec_cmd(noctCall .. "window-switcher"))
 
 -- Move active window around workspaces & monitors
@@ -194,9 +195,9 @@ hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(noctCall .. "brightness-down"),
 -- Screen Capture
 hl.bind(mainMod .. " + P",     hl.dsp.exec_cmd("qs -c rice ipc call display toggle"))
 hl.bind(mainMod .. " + SHIFT + P", hl.dsp.exec_cmd("hyprpicker -a -n"))
-hl.bind("Print", hl.dsp.exec_cmd('grim -g "$(slurp)" - | swappy -f -'))
+hl.bind("Print", hl.dsp.exec_cmd('grim -g "$($HOME/.local/bin/rice-slurp)" - | swappy -f -'))
 hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd(noctCall .. "screenshot-fullscreen"))
-hl.bind("SUPER + Print", hl.dsp.exec_cmd('grim -g "$(slurp -d)" - | wl-copy'))
+hl.bind("SUPER + Print", hl.dsp.exec_cmd('grim -g "$($HOME/.local/bin/rice-slurp -d)" - | wl-copy'))
 -- Theming and Wallpaper
 hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd(noctCall .. "panel-toggle wallpaper"))
 -- Wallhaven picker (~/.config/quickshell/wallhaven): search, download, recolor

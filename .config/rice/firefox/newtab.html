@@ -1,0 +1,89 @@
+<!doctype html>
+<!-- Firefox's new tab, laid out like the rice's launcher (THEME.md §3):
+     one 2px box; the current wallpaper on the left, a 2px line, then the
+     time, the date and a "search:" field with a block cursor.
+     Colours: rice-colors.css (noctalia, from the wallpaper). Wallpaper:
+     wallpaper.jpg, a link kept current by sync-wallpaper.sh. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>new tab</title>
+<link rel="stylesheet" href="rice-colors.css">
+<style>
+  :root { color-scheme: dark; }
+  html, body {
+    margin: 0; height: 100%;
+    background: var(--rice-surface, #111);
+    color: var(--rice-text, #ddd);
+    font: 12pt "JetBrainsMono Nerd Font", monospace;
+  }
+  body { display: grid; place-items: center; padding: 16px; box-sizing: border-box; }
+  .box {
+    display: flex; align-items: stretch;
+    border: 2px solid var(--rice-text-dim, #aaa);
+    max-width: 100%;
+  }
+  .wall { padding: 32px; display: flex; align-items: center; }
+  .wall img {
+    display: block; width: 316px; aspect-ratio: 4 / 3; object-fit: cover;
+    outline: 1px solid oklch(1 0 0 / 0.1); outline-offset: -1px;   /* like the launcher's wallpaper */
+  }
+  .line { width: 2px; background: var(--rice-text-dim, #aaa); margin: 32px 0; }
+  .side { padding: 32px; width: 340px; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+  .time { font-size: 28pt; line-height: 1; }
+  .date { color: var(--rice-text-dim, #aaa); font-size: 10pt; margin-bottom: 16px; }
+  form { display: flex; align-items: center; border: 2px solid var(--rice-text-dim, #aaa); padding: 6px 12px; }
+  form:focus-within { border-color: var(--rice-primary, #8cf); }
+  label { white-space: pre; }
+  input {
+    flex: 1; min-width: 0; border: 0; outline: 0; padding: 0; background: none;
+    color: inherit; font: inherit; caret-color: transparent;
+  }
+  .cursor { width: 0.6em; height: 1.2em; background: var(--rice-text, #ddd); flex: none; }
+  /* blinking block cursor, like everywhere else in the rice (530ms) */
+  @media (prefers-reduced-motion: no-preference) {
+    .cursor { animation: blink 1060ms steps(1, end) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+  }
+  form:not(:focus-within) .cursor { visibility: hidden; }
+  @media (max-width: 760px) { .wall, .line { display: none; } }
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="wall"><img src="wallpaper.jpg" alt=""></div>
+    <div class="line"></div>
+    <div class="side">
+      <div class="time" id="time"></div>
+      <div class="date" id="date"></div>
+      <form id="f" autocomplete="off">
+        <label for="q">search: </label>
+        <input id="q" spellcheck="false" autofocus>
+        <span class="cursor"></span>
+      </form>
+    </div>
+  </div>
+<script>
+  const pad = n => String(n).padStart(2, "0");
+  function tick() {
+    const d = new Date();
+    document.getElementById("time").textContent = pad(d.getHours()) + ":" + pad(d.getMinutes());
+    document.getElementById("date").textContent =
+      d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }).toLowerCase().replace(",", "");
+  }
+  tick(); setInterval(tick, 10000);
+  // move the block cursor to the end of the typed text
+  const q = document.getElementById("q");
+  const fit = () => { q.style.flex = "none"; q.style.width = (q.value.length + 0.0001) + "ch"; };
+  q.addEventListener("input", fit); fit();
+  document.getElementById("f").addEventListener("submit", e => {
+    e.preventDefault();
+    const v = q.value.trim(); if (!v) return;
+    const looksLikeUrl = /^[a-z]+:\/\//i.test(v) || /^[^\s]+\.[a-z]{2,}(\/.*)?$/i.test(v);
+    location.href = looksLikeUrl ? (/^[a-z]+:\/\//i.test(v) ? v : "https://" + v)
+                                 : "https://www.google.com/search?q=" + encodeURIComponent(v);
+  });
+</script>
+</body>
+</html>

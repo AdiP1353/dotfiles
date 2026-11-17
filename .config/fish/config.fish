@@ -21,3 +21,8 @@ end
 zoxide init fish | source
 alias vim=nvim
 
+
+# fzf in the rice's style: the terminal's own 16 colours, square border,
+# "search:" prompt like the launcher (THEME.md §3)
+set -gx FZF_DEFAULT_OPTS "--color=16 --border=sharp --prompt='search: ' --pointer='›' --marker='*' --info=inline-right --no-scrollbar"
+set -gx BAT_THEME ansi
