@@ -57,7 +57,6 @@ part_gtk() {
     gset org.gnome.desktop.interface color-scheme prefer-dark
     gset org.gnome.desktop.interface gtk-theme adw-gtk3-dark
     gset org.gnome.desktop.interface icon-theme breeze-dark
-    gset org.gnome.desktop.interface cursor-theme Bibata-Modern-Ice
     gset org.gnome.desktop.interface font-name "JetBrainsMono Nerd Font 10"
     gset org.gnome.desktop.interface monospace-font-name "JetBrainsMono Nerd Font 10"
     grep -q '^icon_theme=breeze-dark' "$HOME/.config/qt6ct/qt6ct.conf" 2>/dev/null && ok "qt6ct icons" || warn "qt6ct icon_theme is not breeze-dark"
@@ -249,7 +248,30 @@ part_terminal() {
         [ "$MODE" = apply ] && sed -i -E 's/^color_theme = .*/color_theme = "TTY"/' "$HOME/.config/btop/btop.conf" && fixed "btop palette" || warn "btop theme is not TTY"; }
 }
 
-ALL_PARTS=(colors gtk desktop firefox web obsidian spotify discord editor terminal launcher greeter)
+# ---------------------------------------------------------------- Qt (Kvantum), video, cursor
+part_qt() {
+    say "qt (kvantum)"
+    command -v kvantummanager >/dev/null || [ -d /usr/share/Kvantum ] || { warn "kvantum is not installed"; return; }
+    if [ -s "$HOME/.config/Kvantum/Rice/Rice.svg" ] && [ "$MODE" = check ]; then ok "Rice Kvantum theme"
+    elif [ "$MODE" = apply ]; then python3 -I "$RICE/qt/make-kvantum.py" >/dev/null && fixed "Rice Kvantum theme rebuilt from the wallpaper" || warn "could not build the Kvantum theme"
+    else warn "Rice Kvantum theme missing (rice apply qt)"; fi
+    grep -q '^style=kvantum' "$HOME/.config/qt6ct/qt6ct.conf" && ok "qt6ct uses Kvantum" || {
+        [ "$MODE" = apply ] && sed -i 's/^style=.*/style=kvantum/; s/^custom_palette=.*/custom_palette=false/' "$HOME/.config/qt6ct/qt6ct.conf" && fixed "qt6ct uses Kvantum" || warn "qt6ct style is not kvantum"; }
+}
+part_video() {
+    say "video (mpv)"
+    command -v mpv >/dev/null || { say "  skip    mpv is not installed"; return; }
+    [ -s "$HOME/.config/mpv/script-opts/osc.conf" ] && ok "mpv controls themed" || warn "mpv osc.conf missing (rice apply colors)"
+    [ "$(xdg-mime query default video/mp4)" = mpv.desktop ] && ok "mpv opens videos" || {
+        [ "$MODE" = apply ] && for m in video/mp4 video/x-matroska video/webm video/quicktime video/x-msvideo video/mpeg video/ogg video/x-flv; do xdg-mime default mpv.desktop "$m"; done && fixed "mpv opens videos" || warn "videos do not open in mpv"; }
+}
+part_cursor() {
+    say "cursor"
+    gset org.gnome.desktop.interface cursor-theme phinger-cursors-light
+    grep -q 'XCURSOR_THEME="phinger-cursors-light"' "$HOME/.config/uwsm/env" && ok "session cursor (uwsm env)" || warn "uwsm env cursor is not phinger-cursors-light"
+}
+
+ALL_PARTS=(colors gtk qt cursor desktop firefox web obsidian spotify discord editor terminal video launcher greeter)
 run_parts() {
     local parts=("$@"); [ ${#parts[@]} -gt 0 ] || parts=("${ALL_PARTS[@]}")
     # Spotify first: noctalia's template hook also runs Spicetify, and two

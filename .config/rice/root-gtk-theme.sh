@@ -27,6 +27,6 @@ dbus-run-session -- sh -c '
     gsettings set org.gnome.desktop.interface color-scheme prefer-dark
     gsettings set org.gnome.desktop.interface font-name "JetBrainsMono Nerd Font 10"
     gsettings set org.gnome.desktop.interface icon-theme breeze-dark
-    gsettings set org.gnome.desktop.interface cursor-theme Bibata-Modern-Ice
+    gsettings set org.gnome.desktop.interface cursor-theme phinger-cursors-light
 '
 echo "root GTK theme updated"
