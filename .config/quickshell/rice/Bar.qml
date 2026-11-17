@@ -169,7 +169,8 @@ PanelWindow {
                 IconImage {
                     required property var modelData
                     implicitSize: 16
-                    source: modelData.icon
+                    // Vesktop shows as Discord everywhere (launcher, switcher, here)
+                    source: String(modelData.id).startsWith("vesktop") ? Quickshell.iconPath("discord", modelData.icon) : modelData.icon
                     MouseArea {
                         anchors.fill: parent
                         acceptedButtons: Qt.LeftButton | Qt.RightButton

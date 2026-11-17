@@ -107,7 +107,7 @@ PanelWindow {
                         id: icon
                         anchors.verticalCenter: parent.verticalCenter
                         implicitSize: 16
-                        source: Quickshell.iconPath((ipc.class || "").toLowerCase(), "application-x-executable")
+                        source: Quickshell.iconPath(({ vesktop: "discord" })[(ipc.class || "").toLowerCase()] || (ipc.class || "").toLowerCase(), "application-x-executable")
                         opacity: parent.sel ? 1 : 0.75
                     }
                     Text {
@@ -116,7 +116,7 @@ PanelWindow {
                         width: 120
                         elide: Text.ElideRight
                         // last part of the app id: com.anthropic.claude -> claude
-                        text: ((ipc.class || "window").split(".").pop()).toLowerCase()
+                        text: ({ vesktop: "discord" })[(ipc.class || "").toLowerCase()] || ((ipc.class || "window").split(".").pop()).toLowerCase()
                         color: parent.sel ? Theme.text : Theme.textDim
                         font { family: Theme.font; pointSize: Theme.fontSize }
                     }
