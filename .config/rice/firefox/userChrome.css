@@ -1,0 +1,161 @@
+/* Firefox in the rice's minimal style (THEME.md §3).
+ *
+ * This folder is the profile's `chrome` folder (a symlink). rice-colors.css
+ * is written by noctalia from the wallpaper (rice_firefox template); Firefox
+ * reads both files when it starts.
+ *
+ *   one kind of box   plain 2px border in on_surface_variant, square, no shadow
+ *   text              JetBrains Mono, lowercase tab titles (like the bar and alt tab)
+ *   accent            only on focus and selection: the current tab's 1px
+ *                     underline, the focused address bar's border
+ *   hover             brighter text/icon, no fill
+ */
+
+@import url("rice-colors.css");
+
+/* ---- palette and shape, through Firefox's own design tokens (Firefox 160) ---- */
+:root {
+  /* window, toolbars */
+  --toolbox-background-color: var(--rice-surface) !important;
+  --toolbox-background-color-inactive: var(--rice-surface) !important;
+  --toolbox-text-color: var(--rice-text) !important;
+  --toolbox-text-color-inactive: var(--rice-text-dim) !important;
+  --toolbar-background-color: var(--rice-surface) !important;
+  --toolbar-color: var(--rice-text) !important;
+  --chrome-content-separator-color: var(--rice-outline) !important;
+  --focus-outline-color: var(--rice-primary) !important;
+
+  /* tabs: no fill, the current one gets a 1px accent underline */
+  --tab-border-radius: 0 !important;
+  --tab-background-color-selected: transparent !important;
+  --tab-background-color-hover: transparent !important;
+  --tab-text-color-selected: var(--rice-text) !important;
+  --tab-box-shadow-selected: inset 0 -1px 0 var(--rice-primary) !important;
+
+  /* toolbar buttons: dim icons, no hover fill */
+  --toolbarbutton-icon-fill: var(--rice-text-dim) !important;
+  --toolbarbutton-background-color-hover: transparent !important;
+  --toolbarbutton-background-color-active: transparent !important;
+  --toolbarbutton-border-radius: 0 !important;
+
+  /* address bar: the launcher's 2px box, accent border while focused */
+  --toolbar-field-background-color: transparent !important;
+  --toolbar-field-background-color-focus: var(--rice-surface) !important;
+  --toolbar-field-text-color: var(--rice-text) !important;
+  --toolbar-field-text-color-focus: var(--rice-text) !important;
+  --toolbar-field-border-color: var(--rice-text-dim) !important;
+  --toolbar-field-border-color-focus: var(--rice-primary) !important;
+  --urlbar-border-radius: 0 !important;
+  --urlbar-background-border-radius: 0 !important;
+  --urlbar-background-border: 2px solid var(--rice-text-dim) !important;
+  --urlbar-background-border-focused: 2px solid var(--rice-primary) !important;
+  --urlbar-background-outline-focused: none !important;
+  --urlbar-background-border-open: 2px solid var(--rice-primary) !important;
+  --urlbar-background-box-shadow-open: none !important;
+  --urlbar-background-border-top-radius-open: 0 !important;
+  --urlbar-background-border-bottom-radius-open: 0 !important;
+  --urlbar-box-background-color: transparent !important;
+  --urlbar-box-background-color-hover: transparent !important;
+  --urlbar-box-background-color-active: transparent !important;
+  --urlbar-box-background-color-focus: transparent !important;
+
+  /* menus and panels: one 2px box, square, no shadow */
+  --panel-background-color: var(--rice-surface) !important;
+  --panel-text-color: var(--rice-text) !important;
+  --panel-border-color: var(--rice-text-dim) !important;
+  --panel-border-radius: 0 !important;
+  --panel-separator-color: var(--rice-outline) !important;
+  --panel-menuitem-border-radius: 0 !important;
+  --popup-border-color: var(--rice-text-dim) !important;
+
+  /* 0px corners for everything that uses the shared radius tokens */
+  --border-radius-xsmall: 0 !important;
+  --border-radius-small: 0 !important;
+  --border-radius-medium: 0 !important;
+  --border-radius-large: 0 !important;
+  --border-radius-xlarge: 0 !important;
+  --button-border-radius: 0 !important;
+
+  font-family: "JetBrainsMono Nerd Font", monospace !important;
+}
+
+/* ---- one font everywhere in the browser's own interface ---- */
+#navigator-toolbox, #navigator-toolbox *, menupopup, panel, tooltip,
+#sidebar-box, #sidebar-main, findbar {
+  font-family: "JetBrainsMono Nerd Font", monospace !important;
+}
+
+/* ---- no window buttons: Hyprland handles windows ---- */
+.titlebar-buttonbox-container, .titlebar-spacer { display: none !important; }
+
+/* ---- tabs: lowercase titles like the bar and alt tab; dim unless current ---- */
+.tabbrowser-tab .tab-label { text-transform: lowercase; color: var(--rice-text-dim); }
+.tabbrowser-tab[selected] .tab-label { color: var(--rice-text); }
+@media (hover: hover) {
+  .tabbrowser-tab:not([selected]):hover .tab-label { color: var(--rice-text); }
+}
+
+/* ---- address bar dropdown: like the launcher's list. The selected row is
+ *      bright with a 1px accent underline; hover brightens; no fills ---- */
+:root {
+  --urlbarview-background-color-selected: transparent !important;
+  --urlbarview-text-color-selected: var(--rice-text) !important;
+  --urlbarview-background-color-hover: transparent !important;
+  --urlbarview-text-color-hover: var(--rice-text) !important;
+}
+.urlbarView-row[selected] .urlbarView-title {
+  text-decoration: underline 1px var(--rice-primary);
+  text-underline-offset: 3px;
+}
+
+/* ---- toolbar icons: dim at rest, bright on hover, no fill ---- */
+#nav-bar toolbarbutton .toolbarbutton-icon,
+#nav-bar toolbarbutton .toolbarbutton-badge-stack,
+#nav-bar toolbarbutton .toolbarbutton-text {
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+@media (hover: hover) {
+  #nav-bar toolbarbutton:not([disabled]):hover { --toolbarbutton-icon-fill: var(--rice-text) !important; color: var(--rice-text) !important; }
+}
+#nav-bar { box-shadow: none !important; border-top: none !important; }
+
+/* press: the rice's 0.96 scale (THEME §4), only with motion allowed */
+@media (prefers-reduced-motion: no-preference) {
+  #navigator-toolbox toolbarbutton > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack) {
+    transition: scale 150ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  #navigator-toolbox toolbarbutton:not([disabled]):active > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack) {
+    scale: 0.96;
+  }
+}
+
+/* tab close buttons: no hover square, the cross brightens instead */
+.tab-close-button { background-color: transparent !important; }
+@media (hover: hover) {
+  .tab-close-button:hover { fill: var(--rice-text) !important; color: var(--rice-text) !important; }
+}
+
+/* high-contrast mode drops box-shadows: keep the current tab's underline as a border */
+@media (forced-colors: active) {
+  .tabbrowser-tab[selected] .tab-background { border-bottom: 1px solid SelectedItem !important; }
+}
+
+/* ---- menus and panels: one 2px box, square, no shadow ---- */
+menupopup, panel {
+  --panel-shadow: none !important;
+  --panel-shadow-margin: 0px !important;
+}
+menupopup::part(content), panel::part(content) {
+  border: 2px solid var(--rice-text-dim) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+menu, menuitem, .subviewbutton, .panel-subview-body > * { border-radius: 0 !important; }
+tooltip {
+  background: var(--rice-surface) !important;
+  color: var(--rice-text) !important;
+  border: 2px solid var(--rice-text-dim) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}

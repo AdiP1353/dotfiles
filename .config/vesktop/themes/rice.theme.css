@@ -1,0 +1,34 @@
+/**
+ * @name Rice
+ * @description The rice's minimal style over Noctalia Midnight: square corners, 2px borders, JetBrains Mono (THEME.md §3)
+ * @author rice
+ * @version 1.0.0
+ */
+
+/* Load after noctalia.theme.css (Vesktop applies enabled themes in order). */
+:root body {
+  --font: 'JetBrainsMono Nerd Font' !important;
+  --code-font: 'JetBrainsMono Nerd Font' !important;
+  --border-thickness: 2px !important;
+  --gap: 8px !important;
+
+  /* hovers answer at once: 150ms colour fades at most (THEME §4) */
+  --list-item-transition: 150ms ease !important;
+  --border-hover-transition: 150ms ease !important;
+  --dms-icon-svg-transition: 150ms ease !important;
+}
+
+/* images in chat: a 1px white outline at 10%, inset (like the launcher's wallpaper) */
+[class*="imageWrapper"] img, [class*="embedImage"] img {
+  outline: 1px solid oklch(1 0 0 / 0.1);
+  outline-offset: -1px;
+}
+
+/* 0px corners everywhere, like every other app in the rice */
+*, *::before, *::after { border-radius: 0 !important; }
+
+/* no shadows */
+[class*="popout"], [class*="menu_"], [class*="modal"], [class*="tooltip"],
+[class*="layer_"] [class*="root_"] {
+  box-shadow: none !important;
+}

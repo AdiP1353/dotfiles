@@ -93,13 +93,19 @@ live in `~/.config/noctalia/templates.toml` + `templates/`.
 | App launcher (SUPER + Space) | `~/.config/quickshell/rice/Launcher.qml`: a solid 2px box, `run:` with a block cursor, matching apps as lowercase lines, accent underline on the selected one; launches through uwsm | palette |
 | Display switcher (SUPER + P) | `~/.config/quickshell/rice/DisplaySwitcher.qml`: Win + P style 2px box (pc screen only / duplicate / extend / second screen only), accent underline on the selection, `current` marked; applied with `hyprctl eval`, saved to `~/.config/hypr/display-mode.lua` (loaded last by `hypr/config/monitors.lua`), "second screen only" never saved. Colour picker is now SUPER + SHIFT + P | palette |
 | noctalia panels, settings window, notifications, OSDs | noctalia itself (its bar and launcher are no longer used), set to the minimal style in `config.toml`: `[shell]` corner_radius_scale 0, JetBrains Mono, outlines on, popup shadows off; `[shell.panel]` 2px `on_surface_variant` border, no shadow, solid. noctalia keeps its own icons, sliders and toggles | palette |
-| Kitty | **Accents only.** Fixed dark base palette `kitty/themes/rice-dark.conf` (`rice-light.conf` kept but unused); user template `rice_kitty` sets cursor, selection, URL, active tab and border | accent |
-| GTK 3/4 | adw-gtk3 + noctalia `gtk3` / `gtk4` | all roles, mode |
-| Qt / KDE apps (Dolphin) | qt6ct + noctalia `qt` and `kcolorscheme` | all roles, mode |
-| Alacritty, btop | noctalia built-ins | all roles |
-| Firefox, Discord, Spotify | **Not themed** (decided against: each needs an add-on or a patched client) | — |
-| Obsidian | `obsidian` community template: CSS snippet in each vault (base color scheme: adapt to system) | surfaces, accent, mode |
-| Code editors (Zed, Neovim) | **Not themed.** Keep their own theme | — |
+| Terminals: Kitty, Alacritty, btop | **Not wallpaper-driven.** One fixed minimal palette: `kitty/themes/rice-minimal.conf` and the same colours in `alacritty/themes/rice-minimal.toml`; both JetBrains Mono 12, 16px padding, 92% opacity, blinking block cursor (530ms). btop uses the `TTY` theme (the terminal's own colours), square corners, no background | fixed palette |
+| GTK 3/4 (Text Editor, Calculator, Firefox's dialogs) | adw-gtk3-dark + noctalia `gtk3` / `gtk4`; corners squared in `gtk.css`; `settings.ini` in both folders (breeze-dark icons, Bibata cursor, JetBrains Mono 10) | all roles, mode |
+| GNOME Text Editor | user template `rice_gtksourceview` → `~/.local/share/gtksourceview-5/styles/rice.xml` (style scheme `rice`: comments dim, primary / secondary / tertiary for code, accent search matches) | all roles |
+| Qt / KDE apps (Dolphin, Ark) | qt6ct + noctalia `qt` and `kcolorscheme`, Breeze style, breeze-dark icons, JetBrains Mono 10. **Exception:** Breeze keeps its small rounded corners (square Qt widgets would need a custom Kvantum theme); Fusion was tried and looked worse | all roles, mode |
+| Firefox | `~/.config/rice/firefox` is the profile's `chrome` folder (symlink) and `user.js` (symlink): system theme, dark, `userChrome.css` on Firefox 160's design tokens. Tabs: lowercase text, the current one with a 1px accent underline; address bar: the launcher's 2px box, accent border when focused; dropdown rows: accent underline like the launcher; menus: 2px box, square, no shadow; no window buttons; dim icons that brighten on hover, 0.96 press. Colours: user template `rice_firefox` → `rice-colors.css`. Read on start: restart Firefox to see a new wallpaper's colours | all roles |
+| Zed | noctalia community template `zed` → `~/.config/zed/themes/noctalia.json`; `settings.json`: theme "Noctalia Dark", JetBrains Mono for UI, buffer and terminal | all roles |
+| Obsidian | `obsidian` community template (colours) + `rice.css` snippet (master copy `~/.config/rice/obsidian/rice.css`, copied into each vault's `.obsidian/snippets`): JetBrains Mono, 0px corners, 2px borders, no shadows, text-only lowercase buttons (hover underline, accent focus underline, 0.96 press), accent underline on the active tab, image outlines. Window frame hidden (`obsidian.json`) | all roles |
+| Discord | **Vesktop** (replaces the official client). User template `rice_discord` renders noctalia's Midnight theme into `~/.config/vesktop/themes/noctalia.theme.css`; `rice.theme.css` on top: square, 2px borders, JetBrains Mono, 150ms hovers, image outlines. Both enabled in `vesktop/settings/settings.json` | all roles |
+| Spotify | **Spicetify**: noctalia community template `spicetify-noctalia` (an extension that recolours any theme) + a `Rice` theme for font and corners | all roles |
+| Claude, WhatsApp | Electron apps with no theme support: they follow dark mode only | mode |
+| Open Freeze Center | Runs as root (pkexec), so it can't read your theme: `sudo ~/.config/rice/root-gtk-theme.sh` copies the GTK 4 look to root (a snapshot: run again after a wallpaper change) | snapshot |
+| Steam, VLC | **Not themed** (each needs an add-on: Millennium, qt5ct; declined) | — |
+| Icons and cursor | breeze-dark icons in GTK, Qt and KDE; Bibata-Modern-Ice cursor everywhere (GTK, Qt, Hyprland) | — |
 | Login screen | Own greetd greeter (`~/.config/rice-greeter`, installed to `/etc/greetd/rice-greeter` with `sudo …/install.sh`) inside noctalia's greeter session. Ly's layout (hints, hostname, `< session >`, login, password) drawn with the picker's tokens: same Theme values, translucent panel, 1px outlines, accent on the focused field only, heavily blurred wallpaper behind. Template `rice_greeter` writes colors + a small wallpaper to `/var/lib/rice-greeter` (no password) | colors, blurred wallpaper |
 
 ## 6. Wallpaper change pipeline
@@ -108,9 +114,8 @@ The wallhaven picker (`~/.config/quickshell/wallhaven/apply.sh`):
 
 1. Downloads the wallpaper into `~/Wallpapers`.
 2. Keeps noctalia in dark mode (`noctalia msg theme-mode-set dark` if anything changed it).
-3. `noctalia msg wallpaper-set` → noctalia sets it, generates the tonal-spot palette and renders every template above; their hooks reload Hyprland, Kitty, Obsidian and the greeter.
+3. `noctalia msg wallpaper-set` → noctalia sets it, generates the tonal-spot palette and renders every template above; their hooks reload Hyprland, Obsidian, Spotify (Spicetify) and the greeter. Firefox picks up new colours on its next start.
 
 ## Open decisions
 
-- Icon and cursor theme (not mode-switched for now; pick neutral ones that work on both).
-- Window shape (THEME.md asks for 0px corners, 2/4px gaps, no blur, solid windows; Hyprland still has CachyOS's 10px rounding, blur and 0.95/0.85 opacity).
+- Qt corners: Breeze's small rounding is the one place corners aren't square. A Kvantum theme drawn in the minimal style would fix it.

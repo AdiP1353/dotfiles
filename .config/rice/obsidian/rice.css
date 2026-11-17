@@ -1,0 +1,77 @@
+/* Obsidian in the rice's minimal style (THEME.md §3). Colours come from
+ * noctalia's snippet (noctalia.css); this one sets the shape and the font:
+ * JetBrains Mono everywhere, square corners, plain 2px borders, no shadows,
+ * accent only on focus. Master copy: ~/.config/rice/obsidian/rice.css
+ * (copied into each vault's .obsidian/snippets). */
+
+body {
+  --font-interface-theme: "JetBrainsMono Nerd Font", monospace;
+  --font-text-theme: "JetBrainsMono Nerd Font", monospace;
+  --font-monospace-theme: "JetBrainsMono Nerd Font", monospace;
+
+  --radius-s: 0; --radius-m: 0; --radius-l: 0; --radius-xl: 0;
+  --button-radius: 0; --input-radius: 0; --checkbox-radius: 0;
+  --callout-radius: 0; --code-radius: 0; --image-radius: 0;
+  --modal-radius: 0; --menu-radius: 0; --tab-radius: 0; --tab-radius-active: 0;
+  --clickable-icon-radius: 0; --toggle-radius: 0; --toggle-thumb-radius: 0;
+  --slider-thumb-radius: 0; --embed-border-radius: 0;
+
+  --shadow-s: none; --shadow-l: none;
+  --input-shadow: none; --input-shadow-hover: none;
+
+  --modal-border-width: 2px; --modal-border-color: var(--text-muted);
+  --menu-border-width: 2px; --menu-border-color: var(--text-muted);
+  --prompt-border-width: 2px; --prompt-border-color: var(--text-muted);
+  --input-border-width: 2px;
+}
+
+/* inputs: the launcher's 2px box; accent border only while focused */
+input[type="text"], input[type="search"], input[type="email"], input[type="password"],
+input[type="number"], textarea, select, .dropdown {
+  border: 2px solid var(--text-muted);
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+input:focus, textarea:focus, select:focus, .dropdown:focus {
+  border-color: var(--interactive-accent);
+  box-shadow: none;
+}
+
+/* buttons: plain lowercase text, underline on hover, accent underline on focus */
+button:not(.clickable-icon), .mod-cta {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--text-muted);
+  text-transform: lowercase;
+}
+@media (hover: hover) {
+  button:not(.clickable-icon):hover, .mod-cta:hover {
+    color: var(--text-normal);
+    text-decoration: underline 1px;
+    text-underline-offset: 3px;
+  }
+}
+button:not(.clickable-icon):focus-visible, .mod-cta:focus-visible {
+  outline: none;
+  text-decoration: underline 1px var(--interactive-accent);
+  text-underline-offset: 3px;
+}
+
+/* tabs: no pill, the active one bright with a 1px accent underline */
+.workspace-tab-header, .workspace-tab-header-inner { border-radius: 0 !important; }
+.workspace-tab-header.is-active { box-shadow: inset 0 -1px 0 var(--interactive-accent); background: transparent; }
+.workspace-tab-header::before, .workspace-tab-header::after { display: none !important; }
+
+/* press: the rice's 0.96 scale (THEME §4), only with motion allowed */
+@media (prefers-reduced-motion: no-preference) {
+  button:not(.clickable-icon), .mod-cta { transition: scale 150ms cubic-bezier(0.23, 1, 0.32, 1); }
+  button:not(.clickable-icon):not(:disabled):active, .mod-cta:not(:disabled):active { scale: 0.96; }
+}
+
+/* images in notes: a 1px white outline at 10%, inset (like the launcher's wallpaper) */
+.markdown-rendered img:not([src$=".svg"]), .markdown-source-view img:not([src$=".svg"]) {
+  outline: 1px solid oklch(1 0 0 / 0.1);
+  outline-offset: -1px;
+}

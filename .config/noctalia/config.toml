@@ -106,11 +106,11 @@ source = "wallpaper"
 wallpaper_scheme = "m3-tonal-spot"   # calm palette; "vibrant" was tried and was too strong
 
 [theme.templates]
-# kitty is themed by the rice_kitty user template instead (accents only, THEME.md).
-builtin_ids = [ "btop", "gtk3", "gtk4", "kcolorscheme", "qt", "alacritty" ]
+# Terminals (kitty, alacritty, btop) keep the fixed minimal palette: not listed here.
+builtin_ids = [ "gtk3", "gtk4", "kcolorscheme", "qt" ]
 # Obsidian: CSS snippet in each vault.
 enable_community_templates = true
-community_ids = [ "obsidian" ]
+community_ids = [ "obsidian", "zed" ]
 
 [widget.clock]
 color = "secondary"

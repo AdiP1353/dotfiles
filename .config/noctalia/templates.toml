@@ -20,3 +20,21 @@ post_hook   = "hyprctl reload"
 input_path  = "$XDG_CONFIG_HOME/noctalia/templates/rice-colors.json"
 output_path = "/var/lib/rice-greeter/colors.json"
 post_hook   = "bash $XDG_CONFIG_HOME/rice-greeter/sync-wallpaper.sh"
+
+# Firefox: colours for userChrome.css (~/.config/rice/firefox, which is the
+# profile's chrome folder through a symlink). Firefox reads it on start.
+[theme.templates.user.rice_firefox]
+input_path  = "$XDG_CONFIG_HOME/noctalia/templates/rice-firefox.css"
+output_path = "$XDG_CONFIG_HOME/rice/firefox/rice-colors.css"
+
+# GNOME Text Editor (and any GtkSourceView 5 app): a "rice" colour scheme.
+[theme.templates.user.rice_gtksourceview]
+input_path  = "$XDG_CONFIG_HOME/noctalia/templates/rice-gtksourceview.xml"
+output_path = "$XDG_DATA_HOME/gtksourceview-5/styles/rice.xml"
+
+# Discord (Vesktop): noctalia's Midnight theme in the wallpaper's colours, only
+# for Vesktop (the community "discord" template would write to every client).
+# rice.theme.css (static, in the same folder) squares it off.
+[theme.templates.user.rice_discord]
+input_path  = "$XDG_STATE_HOME/noctalia/community-templates/discord/discord-midnight.css"
+output_path = "$XDG_CONFIG_HOME/vesktop/themes/noctalia.theme.css"

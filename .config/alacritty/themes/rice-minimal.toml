@@ -1,0 +1,34 @@
+# Minimal terminal palette (THEME.md §3), the same one Kitty uses
+# (kitty/themes/rice-minimal.conf). Fixed: it never follows the wallpaper.
+
+[colors.primary]
+background = "#111111"
+foreground = "#d0d0d0"
+
+[colors.cursor]
+cursor = "#d0d0d0"
+text = "#111111"
+
+[colors.selection]
+background = "#333333"
+text = "#e8e8e8"
+
+[colors.normal]
+black   = "#1c1c1c"
+red     = "#c97b7b"
+green   = "#9fb98a"
+yellow  = "#cdb98a"
+blue    = "#8ea6c4"
+magenta = "#b496c2"
+cyan    = "#8fbcb6"
+white   = "#bdbdbd"
+
+[colors.bright]
+black   = "#555555"
+red     = "#d99595"
+green   = "#b5cc9f"
+yellow  = "#ddcca1"
+blue    = "#a6bcd6"
+magenta = "#c6acd2"
+cyan    = "#a6cec9"
+white   = "#e8e8e8"

@@ -1,0 +1,35 @@
+# Alacritty, set up to match Kitty (THEME.md §3): the fixed minimal palette,
+# JetBrains Mono 12, 16px padding, 92% opacity, block cursor, no title bar.
+
+[general]
+import = ["~/.config/alacritty/themes/rice-minimal.toml"]
+live_config_reload = true
+
+[env]
+TERM = "xterm-256color"
+
+[window]
+padding = { x = 16, y = 16 }
+dynamic_padding = false
+decorations = "None"
+opacity = 0.92
+decorations_theme_variant = "Dark"
+
+[scrolling]
+history = 10000
+multiplier = 3
+
+[font]
+normal = { family = "JetBrainsMono Nerd Font", style = "Regular" }
+bold = { family = "JetBrainsMono Nerd Font", style = "Bold" }
+italic = { family = "JetBrainsMono Nerd Font", style = "Italic" }
+bold_italic = { family = "JetBrainsMono Nerd Font", style = "Bold Italic" }
+size = 12.0
+
+[cursor]
+style = { shape = "Block", blinking = "On" }
+blink_interval = 530
+unfocused_hollow = true
+
+[colors]
+draw_bold_text_with_bright_colors = false
