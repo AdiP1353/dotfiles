@@ -1,0 +1,32 @@
+/* Spotify in the rice's minimal style (THEME.md §3).
+ * Colours: color.ini (noctalia's rice_spicetify template) and noctalia's
+ * live Spicetify extension. This file sets the shape and the font:
+ * JetBrains Mono, 0px corners, plain 2px panel borders, no shadows. */
+
+/* Spotify sets its font stacks in a cascade layer with !important (on <html>)
+ * and again on some containers, so set them on every element instead. */
+*, *::before, *::after {
+  --encore-body-font-stack: "JetBrainsMono Nerd Font", monospace !important;
+  --encore-title-font-stack: "JetBrainsMono Nerd Font", monospace !important;
+  --encore-variable-font-stack: "JetBrainsMono Nerd Font", monospace !important;
+}
+body, button, input, textarea, select {
+  font-family: "JetBrainsMono Nerd Font", monospace !important;
+}
+
+/* 0px corners everywhere, like every other app in the rice */
+*, *::before, *::after { border-radius: 0 !important; }
+
+/* no shadows */
+* { box-shadow: none !important; }
+
+/* the three panels (library, main view, right panel): one kind of box,
+ * a plain 2px border, no fill of their own. Spotify hashes its class
+ * names, so these use its stable element ids. */
+#Desktop_LeftSidebar_Id, #main-view, #Desktop_PanelContainer_Id {
+  border: 2px solid var(--spice-subtext) !important;
+  background-color: var(--spice-main) !important;
+}
+
+/* images: a 1px white outline at 10%, inset (like the launcher's wallpaper) */
+img { outline: 1px solid oklch(1 0 0 / 0.1); outline-offset: -1px; }

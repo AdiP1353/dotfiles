@@ -38,3 +38,10 @@ output_path = "$XDG_DATA_HOME/gtksourceview-5/styles/rice.xml"
 [theme.templates.user.rice_discord]
 input_path  = "$XDG_STATE_HOME/noctalia/community-templates/discord/discord-midnight.css"
 output_path = "$XDG_CONFIG_HOME/vesktop/themes/noctalia.theme.css"
+
+# Spotify (Spicetify): the Rice theme's colours. No hook here on purpose: the
+# community spicetify-noctalia template runs Spicetify, and two Spicetify runs
+# at once corrupt Spotify's patched files.
+[theme.templates.user.rice_spicetify]
+input_path  = "$XDG_CONFIG_HOME/noctalia/templates/rice-spicetify.ini"
+output_path = "$XDG_CONFIG_HOME/spicetify/Themes/Rice/color.ini"
