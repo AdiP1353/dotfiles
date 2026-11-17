@@ -1,0 +1,18 @@
+// Let aprakash sync noctalia's wallpaper and colors to the login greeter
+// without typing a password.
+//
+// Scope: only the greeter sync action (which runs
+// /usr/bin/noctalia-greeter-apply-appearance --sync and nothing else), only
+// for this user, and only from their own active session at the machine
+// (not over SSH, not from a locked/inactive session).
+//
+// Install: sudo install -m 644 ~/.config/noctalia/polkit/49-noctalia-greeter-sync.rules /etc/polkit-1/rules.d/
+// Remove:  sudo rm /etc/polkit-1/rules.d/49-noctalia-greeter-sync.rules
+
+polkit.addRule(function (action, subject) {
+    if (action.id === "org.noctalia.greeter.sync-appearance" &&
+        subject.user === "aprakash" &&
+        subject.local && subject.active) {
+        return polkit.Result.YES;
+    }
+});

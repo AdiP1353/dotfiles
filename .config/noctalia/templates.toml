@@ -1,0 +1,22 @@
+# User templates rendered by noctalia every time the palette changes.
+
+# Shared palette for the rice's own Quickshell apps (wallhaven picker, later
+# the bar and popups). Uses only the color roles listed in THEME.md.
+[theme.templates.user.rice_colors]
+input_path  = "$XDG_CONFIG_HOME/noctalia/templates/rice-colors.json"
+output_path = "$XDG_STATE_HOME/rice/colors.json"
+
+# Hyprland window borders (and group/shadow colors) from the wallpaper.
+# Loaded last by ~/.config/hypr/hyprland.lua: require("config.wallpaper_colors")
+[theme.templates.user.rice_hyprland]
+input_path  = "$XDG_CONFIG_HOME/noctalia/templates/rice-hyprland.lua"
+output_path = "$XDG_CONFIG_HOME/hypr/config/wallpaper_colors.lua"
+post_hook   = "hyprctl reload"
+
+# Login screen (~/.config/rice-greeter, installed in /etc/greetd/rice-greeter):
+# its colors and a small copy of the wallpaper (shown heavily blurred), in a
+# folder you own that the greeter can read.
+[theme.templates.user.rice_greeter]
+input_path  = "$XDG_CONFIG_HOME/noctalia/templates/rice-colors.json"
+output_path = "/var/lib/rice-greeter/colors.json"
+post_hook   = "bash $XDG_CONFIG_HOME/rice-greeter/sync-wallpaper.sh"

@@ -1,0 +1,8 @@
+@import url("noctalia.css");
+
+/* Minimal style (~/.config/rice/THEME.md §3): square corners everywhere,
+   like the bar, picker and launcher. noctalia only manages the import above;
+   this block is the rice's and survives wallpaper changes. */
+* {
+  border-radius: 0;
+}

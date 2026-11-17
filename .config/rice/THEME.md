@@ -1,0 +1,116 @@
+# Rice theme spec
+
+The single source of truth for how everything looks. **§3, the minimal style,
+is the reference for any new or changed UI.** Every config (Hyprland, Quickshell,
+Kitty, GTK, Qt, Firefox/Zen, Vesktop, Spotify, lock/login) follows these rules.
+If a new app can't follow them, it stays on its default theme rather than half-matching.
+
+## 1. Color source
+
+- Generator: **noctalia**, scheme **tonal spot** (`theme.wallpaper_scheme` in `~/.config/noctalia/config.toml`). "vibrant" was tried and was too strong.
+- Wallpapers: any kind (anime, photos, abstract).
+- Mode: **always dark**. The wallpaper never switches apps to light mode; it only changes the colors (accent, tinted dark surfaces, borders). `gsettings` color-scheme stays `prefer-dark`.
+
+## 2. Color roles (Material 3 names from matugen)
+
+Use only these roles. Never hard-code a hex value in any config.
+
+| Role | Used for |
+|---|---|
+| `surface` | Bar background, popup background, lock screen panel |
+| `surface_container` | Cards and sections inside popups (control center groups, launcher list) |
+| `surface_container_high` | Hovered row that isn't selected, input fields |
+| `on_surface` | Main text and icons; **active workspace**; toggle "on" state |
+| `on_surface_variant` | Secondary text, inactive workspaces, toggle "off" state, slider track |
+| `outline_variant` | 1px popup outline, inactive window border, dividers |
+| `primary` | **Accent:** active window border, selected item background |
+| `on_primary` | Text/icons on a selected item |
+| `error` | Low battery, failed actions, critical notifications only |
+
+### Where the accent (`primary`) is allowed
+
+Only these two places:
+
+1. **Active window border.**
+2. **Selection / hover highlight** in the launcher, wallpaper picker, power menu and control center lists.
+
+Everything else stays neutral. That includes the active workspace, toggles, sliders and the clock.
+"On" is shown by contrast (`on_surface` vs `on_surface_variant`), not by color.
+
+## 3. The minimal style (THE reference for everything new)
+
+Set by the login screen (Ly's look) and applied to the wallpaper picker; the
+user called it perfect. Anything new or changed must look like this.
+Reference code: `~/.config/rice-greeter/LoginBox.qml` and
+`~/.config/quickshell/wallhaven/{Layout,LyBox,ActionButton,SearchField}.qml`.
+
+| Rule | Value |
+|---|---|
+| Containers | **One kind of box**: a plain **2px border** in `on_surface_variant`, 0px corners, **no shadow**. No cards, no chips with their own styles |
+| Fills | None on the surface itself. Over a wallpaper/image only: the box gets `surface` at 82% (92% on hover) so text stays readable |
+| Buttons | **Plain lowercase text**, no fill, no border, no icons (`back  nope  skip  like`, `keep rating`, `rate more`). Rest: `on_surface_variant`; hover: `on_surface` + 1px underline; keyboard focus: 1px **accent** underline; a picked choice: bold in its tone for a moment |
+| Text fields | Ly-style: a label with a colon (`search:`, `login:`, `password:`), then plain text and a **blinking block cursor**; no input box |
+| Labels & copy | Lowercase, terse (`incorrect password`, `finding wallpapers to rate...`, `10 rated`) |
+| Accent | Only for focus/selection: focused underline, selected thumbnail border, active window border |
+| Rating tones | like = `primary`, nope = `error`, skip = neutral (`on_surface_variant`) |
+| Small tile buttons | Translucent `surface` squares with a glyph, no outline (thumbnail like/nope) |
+| Corner radius | **0px everywhere** |
+| Window border | 2px: 45° gradient `primary` to `tertiary` when active, `outline_variant` when inactive |
+| Windows (all apps) | Hyprland: rounding 0, gaps 2 / 4px, fully opaque, blur off, shadows off (`hypr/config/decorations.lua`) |
+| App fonts | JetBrains Mono Nerd Font 10 for GTK (gsettings), Qt (qt6ct `[Fonts]`) and KDE apps (`kdeglobals`); GTK corners squared in `gtk-3.0/gtk.css` and `gtk-4.0/gtk.css` (below noctalia's import) |
+| Wallpaper picker | A normal window ("wallpapers", tiles like any app); its layout stretches to the window |
+| Shadows | None in the rice's own UI. (Hyprland may still give floating windows a subtle one) |
+| Blur | Only behind the login and lock box: the wallpaper, heavily blurred and dimmed |
+| Opacity | Solid, except boxes over images (above) and Kitty (92%) |
+| Key hints | Only where the keys are not obvious, as small plain text (login screen: `F1 shutdown F2 reboot F3 show password`) |
+| Motion | Short and functional (THEME §4 timings): 150ms fades, 0.96 press scale, 200ms swipe exits; nothing decorative. Keyboard-opened overlays (launcher, ALT+Tab, SUPER+H, SUPER+P, lock) open and close instantly. Only rare moments animate: the login screen enters clock → box → hints, 100ms apart, fade + 12px rise, 300ms strong ease-out (`RICE_REDUCED_MOTION=1` = fades only) |
+
+## 4. Size and spacing (medium scale, 1080p)
+
+| Token | Value |
+|---|---|
+| Font | JetBrains Mono Nerd Font (or Iosevka Nerd Font) everywhere, monospace only |
+| Base font size | 12pt (Kitty 12, bar 12, popups 12, small labels 10) |
+| Bar height | 28px, always on, tiny: workspaces, clock, battery |
+| Spacing scale | 4 / 8 / 12 / 16px only |
+| Hyprland gaps | inner 2px, outer 4px |
+| Popup padding | 12px; rows 8px apart |
+| Icon size | 16px in the bar, 20px in popups |
+| Animations | Short or off (snappy) |
+
+## 5. Per-app rules
+
+Colors come from **noctalia** (it plays the matugen role): every time the
+wallpaper changes it renders the templates below. Built-in and community
+templates are listed in `~/.config/noctalia/config.toml`; the rice's own ones
+live in `~/.config/noctalia/templates.toml` + `templates/`.
+
+| App | How | Follows |
+|---|---|---|
+| Hyprland | user template `rice_hyprland` → `hypr/config/wallpaper_colors.lua`, required last by `hyprland.lua` | active border = 45° gradient primary → tertiary, inactive = outline_variant, groups, shadow color |
+| Quickshell picker (and later the bar/popups) | user template `rice_colors` → `~/.local/state/rice/colors.json`, watched live | all roles above |
+| Top bar (always on) | `~/.config/quickshell/rice/Bar.qml` (`qs -c rice`, autostarted): 28px, plain lowercase text, 2px bottom line; workspaces (accent underline on the current one), window title, time/date, tray, `net:` `vol:` `bat:`. noctalia's bar is off (`bar.default.enabled = false`) | palette (via the picker's `Theme.qml`) |
+| App launcher (SUPER + Space) | `~/.config/quickshell/rice/Launcher.qml`: a solid 2px box, `run:` with a block cursor, matching apps as lowercase lines, accent underline on the selected one; launches through uwsm | palette |
+| Display switcher (SUPER + P) | `~/.config/quickshell/rice/DisplaySwitcher.qml`: Win + P style 2px box (pc screen only / duplicate / extend / second screen only), accent underline on the selection, `current` marked; applied with `hyprctl eval`, saved to `~/.config/hypr/display-mode.lua` (loaded last by `hypr/config/monitors.lua`), "second screen only" never saved. Colour picker is now SUPER + SHIFT + P | palette |
+| noctalia panels, settings window, notifications, OSDs | noctalia itself (its bar and launcher are no longer used), set to the minimal style in `config.toml`: `[shell]` corner_radius_scale 0, JetBrains Mono, outlines on, popup shadows off; `[shell.panel]` 2px `on_surface_variant` border, no shadow, solid. noctalia keeps its own icons, sliders and toggles | palette |
+| Kitty | **Accents only.** Fixed dark base palette `kitty/themes/rice-dark.conf` (`rice-light.conf` kept but unused); user template `rice_kitty` sets cursor, selection, URL, active tab and border | accent |
+| GTK 3/4 | adw-gtk3 + noctalia `gtk3` / `gtk4` | all roles, mode |
+| Qt / KDE apps (Dolphin) | qt6ct + noctalia `qt` and `kcolorscheme` | all roles, mode |
+| Alacritty, btop | noctalia built-ins | all roles |
+| Firefox, Discord, Spotify | **Not themed** (decided against: each needs an add-on or a patched client) | — |
+| Obsidian | `obsidian` community template: CSS snippet in each vault (base color scheme: adapt to system) | surfaces, accent, mode |
+| Code editors (Zed, Neovim) | **Not themed.** Keep their own theme | — |
+| Login screen | Own greetd greeter (`~/.config/rice-greeter`, installed to `/etc/greetd/rice-greeter` with `sudo …/install.sh`) inside noctalia's greeter session. Ly's layout (hints, hostname, `< session >`, login, password) drawn with the picker's tokens: same Theme values, translucent panel, 1px outlines, accent on the focused field only, heavily blurred wallpaper behind. Template `rice_greeter` writes colors + a small wallpaper to `/var/lib/rice-greeter` (no password) | colors, blurred wallpaper |
+
+## 6. Wallpaper change pipeline
+
+The wallhaven picker (`~/.config/quickshell/wallhaven/apply.sh`):
+
+1. Downloads the wallpaper into `~/Wallpapers`.
+2. Keeps noctalia in dark mode (`noctalia msg theme-mode-set dark` if anything changed it).
+3. `noctalia msg wallpaper-set` → noctalia sets it, generates the tonal-spot palette and renders every template above; their hooks reload Hyprland, Kitty, Obsidian and the greeter.
+
+## Open decisions
+
+- Icon and cursor theme (not mode-switched for now; pick neutral ones that work on both).
+- Window shape (THEME.md asks for 0px corners, 2/4px gaps, no blur, solid windows; Hyprland still has CachyOS's 10px rounding, blur and 0.95/0.85 opacity).
