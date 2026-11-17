@@ -1,41 +1,41 @@
 # dotfiles
 
-A minimal, wallpaper-driven rice for CachyOS: Hyprland (Lua config), the
-noctalia shell, my own Quickshell pieces, Kitty and fish.
+My CachyOS rice. Super minimal, the colours come from the wallpaper.
 
-One look everywhere: plain 2px boxes with square corners, lowercase text-only
-buttons, `label:` fields with a block cursor, JetBrains Mono, the accent colour
-only on focus and selection, always dark. Colours come from the wallpaper.
-The full design spec is [`.config/rice/THEME.md`](../.config/rice/THEME.md).
+### What's in it
 
-## What's here
+- **OS** : [CachyOS](https://cachyos.org/)
+- **WM** : [Hyprland](https://hypr.land/) (lua config)
+- **Shell** : [noctalia](https://github.com/noctalia-dev/noctalia-shell) for notifications, control centre and colours
+- **Bar, launcher, alt tab** : my own, made with [Quickshell](https://quickshell.org/)
+- **Wallpaper picker** : also mine, pulls straight from [wallhaven](https://wallhaven.cc/) and learns what I like
+- **Login / lock screen** : my own greetd greeter, looks like [Ly](https://github.com/fairyglade/ly)
+- **Terminal** : [kitty](https://sw.kovidgoyal.net/kitty/) with [fish](https://fishshell.com/)
+- **Fetch** : [fastfetch](https://github.com/fastfetch-cli/fastfetch)
+- **Font** : [JetBrains Mono Nerd Font](https://www.nerdfonts.com/)
+- **Wallpaper** : [wallhaven-exoldw](https://wallhaven.cc/w/exoldw)
 
-| Path | What it is |
-|---|---|
-| `.config/hypr/` | Hyprland, Lua config: binds, rules, decorations, autostart |
-| `.config/quickshell/rice/` | top bar, app launcher (super space), window switcher (alt tab), shortcuts (super h), display mode switcher (super p) |
-| `.config/quickshell/wallhaven/` | wallpaper picker (super w): browses wallhaven, learns from your ratings, SFW and screen-sized only |
-| `.config/rice-greeter/` | login screen (greetd) and lock screen (super l) in the Ly layout |
-| `.config/noctalia/` | noctalia settings and the rice's colour templates |
-| `.config/kitty/`, `.config/fish/`, `.config/fastfetch/` | terminal, prompt and greeting |
-| `.config/gtk-*/gtk.css`, `.config/qt6ct/` | square corners and fonts for GTK and Qt apps |
+Everything follows one style, it's written down in [THEME.md](../.config/rice/THEME.md).
 
-## Needs
+### Keys
 
-Hyprland 0.57+ (Lua config), noctalia, quickshell, greetd, kitty, fish,
-fastfetch, JetBrains Mono Nerd Font, hyprpicker, grim, slurp, uwsm.
+- `super space` app launcher
+- `super w` wallpapers
+- `super p` display mode
+- `super l` lock
+- `super h` all the other shortcuts
+- `alt tab` switch windows
 
-## Install
+### Usage
 
-```sh
-git clone --bare <this repo> ~/.dotfiles
-alias dots='git --git-dir=$HOME/.dotfiles --work-tree=$HOME'
-dots checkout            # move any clashing files out of the way first
-dots config status.showUntrackedFiles no
-sudo ~/.config/rice-greeter/install.sh   # login screen
-```
+Copy what you want into `~/.config`. Back up your own configs first.
 
-Not included (machine-specific or generated): the monitor layout
-(`~/.config/hypr/monitors.lua`, from nwg-displays; optional), the SUPER + P
-display mode, the colour files noctalia writes on each wallpaper change, and
-the fastfetch logo art (`logo.png`, `logo.txt`; the greeting falls back to fastfetch's own logo).
+For the login screen run `sudo ~/.config/rice-greeter/install.sh`.
+
+### Screenshots
+
+![desktop](../.config/rice/screenshots/desktop.png)
+
+![launcher](../.config/rice/screenshots/launcher.png)
+
+![terminal](../.config/rice/screenshots/terminal.png)
