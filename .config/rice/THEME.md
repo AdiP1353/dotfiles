@@ -116,6 +116,25 @@ The wallhaven picker (`~/.config/quickshell/wallhaven/apply.sh`):
 2. Keeps noctalia in dark mode (`noctalia msg theme-mode-set dark` if anything changed it).
 3. `noctalia msg wallpaper-set` → noctalia sets it, generates the tonal-spot palette and renders every template above; their hooks reload Hyprland, Obsidian, Spotify (Spicetify) and the greeter. Firefox picks up new colours on its next start.
 
+## 7. Keeping it in place (updates)
+
+Everything lives in `~/.config` (the dotfiles repo); nothing is patched inside
+a package except Spotify. The `rice` command checks and repairs the lot:
+
+| Command | Does |
+|---|---|
+| `rice check` | lists every themed piece as ok / needs |
+| `rice apply [part...]` | fixes only what is off (parts: colors gtk firefox obsidian spotify discord editor launcher greeter) |
+| `rice install` | new machine: links `~/.local/bin/rice` and the systemd user units, enables them, runs `rice apply` |
+
+Automatic, no action needed:
+
+- `rice-apply.timer`: at login and every 6 hours, `rice apply --quiet`.
+- `rice-spotify.path`: Spotify updates (spotify-launcher) bring back `Apps/xpui.spa`; that starts `rice apply spotify`, which re-patches with Spicetify.
+- pacman hook `/etc/pacman.d/hooks/90-rice-theme.hook` (install once: `sudo ~/.config/rice/system/install.sh`): after pacman updates Firefox, Vesktop, Spicetify, Obsidian, Zed, Text Editor, noctalia, Quickshell, Hyprland or the GTK/Qt theme packages, it starts `rice-apply.service` in your session.
+
+Why the rest survives updates: Firefox reads `chrome/` and `user.js` from the profile (links to this folder) and `rice` keeps its add-on theme on the default one; Vesktop, Obsidian, Zed, GTK, Qt and the terminals read their theme from files in your home that packages never touch; the login screen is a copy in `/etc/greetd/rice-greeter` (`rice check` says when it is out of date: `sudo ~/.config/rice-greeter/install.sh`). What `rice` cannot see: a big redesign inside an app (e.g. Firefox renaming its CSS tokens) can change how the theme looks; THEME.md §5 says where each app's theme file is.
+
 ## Open decisions
 
 - Qt corners: Breeze's small rounding is the one place corners aren't square. A Kvantum theme drawn in the minimal style would fix it.

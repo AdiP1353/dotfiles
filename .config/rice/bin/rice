@@ -1,0 +1,241 @@
+#!/usr/bin/env bash
+# rice: keeps the whole desktop theme in place (see ~/.config/rice/THEME.md).
+#
+#   rice check            show what is themed and what is not
+#   rice apply [part...]  put the theme back wherever it is missing (safe to
+#                         run any time; only changes what is off)
+#   rice install          first-time setup on a new machine: links, the
+#                         automatic re-apply units, then `rice apply`
+#
+# Parts: colors gtk firefox obsidian spotify discord editor launcher greeter
+#
+# Runs by itself: at login and every 6 hours (rice-apply.timer), right after
+# a Spotify update (rice-spotify.path), and after pacman updates the themed
+# apps (the pacman hook from `sudo ~/.config/rice/system/install.sh`).
+
+set -uo pipefail
+
+RICE="$HOME/.config/rice"
+QUIET=0
+FIXED=0
+BROKEN=0
+
+say()  { [ "$QUIET" = 1 ] || printf '%s\n' "$*"; }
+ok()   { say "  ok      $*"; }
+fixed(){ say "  fixed   $*"; FIXED=$((FIXED + 1)); }
+warn() { printf '  needs   %s\n' "$*" >&2; BROKEN=$((BROKEN + 1)); }
+running() { pgrep -x "$1" >/dev/null 2>&1; }
+MODE=check   # or apply
+
+# ---------------------------------------------------------------- colours
+part_colors() {
+    say "colours (noctalia templates)"
+    if ! command -v noctalia >/dev/null; then warn "noctalia is not installed"; return; fi
+    if [ "$MODE" = apply ]; then
+        if noctalia msg templates-apply >/dev/null 2>&1; then fixed "re-rendered every template from the wallpaper"
+        else warn "noctalia is not running; colours re-render when it starts"; fi
+    else
+        for f in "$HOME/.local/state/rice/colors.json" "$RICE/firefox/rice-colors.css" \
+                 "$HOME/.local/share/gtksourceview-5/styles/rice.xml" \
+                 "$HOME/.config/spicetify/Themes/Rice/color.ini" \
+                 "$HOME/.config/vesktop/themes/noctalia.theme.css"; do
+            [ -s "$f" ] && ok "${f/#$HOME/\~}" || warn "${f/#$HOME/\~} missing (rice apply colors)"
+        done
+    fi
+}
+
+# ---------------------------------------------------------------- GTK / Qt
+gset() { # schema key value
+    local cur; cur=$(gsettings get "$1" "$2" 2>/dev/null)
+    if [ "$cur" = "'$3'" ]; then ok "$2 = $3"
+    elif [ "$MODE" = apply ]; then gsettings set "$1" "$2" "$3" && fixed "$2 = $3"
+    else warn "$2 is $cur, should be '$3'"; fi
+}
+part_gtk() {
+    say "gtk / qt"
+    gset org.gnome.desktop.interface color-scheme prefer-dark
+    gset org.gnome.desktop.interface gtk-theme adw-gtk3-dark
+    gset org.gnome.desktop.interface icon-theme breeze-dark
+    gset org.gnome.desktop.interface cursor-theme Bibata-Modern-Ice
+    gset org.gnome.desktop.interface font-name "JetBrainsMono Nerd Font 10"
+    gset org.gnome.desktop.interface monospace-font-name "JetBrainsMono Nerd Font 10"
+    grep -q '^icon_theme=breeze-dark' "$HOME/.config/qt6ct/qt6ct.conf" 2>/dev/null && ok "qt6ct icons" || warn "qt6ct icon_theme is not breeze-dark"
+    for v in 3.0 4.0; do
+        grep -q 'border-radius: 0' "$HOME/.config/gtk-$v/gtk.css" 2>/dev/null && ok "gtk-$v square corners" || warn "gtk-$v/gtk.css lost its square corners"
+    done
+}
+
+# ---------------------------------------------------------------- Firefox
+ff_profile() {
+    local base="$HOME/.config/mozilla/firefox" rel
+    [ -d "$base" ] || base="$HOME/.mozilla/firefox"
+    rel=$(sed -n 's/^Default=//p' "$base/installs.ini" 2>/dev/null | head -n1)
+    [ -n "$rel" ] || rel=$(awk -F= '/^Path=/{p=$2} /^Default=1/{print p; exit}' "$base/profiles.ini" 2>/dev/null)
+    [ -n "$rel" ] && [ -d "$base/$rel" ] && printf '%s' "$base/$rel"
+}
+link_to() { # link target name
+    local link="$1" target="$2"
+    if [ "$(readlink "$link" 2>/dev/null)" = "$target" ]; then ok "${link/#$HOME/\~}"
+    elif [ "$MODE" = apply ]; then
+        [ -e "$link" ] && [ ! -L "$link" ] && mv "$link" "$link.bak-rice-$(date +%s)"
+        ln -sfn "$target" "$link" && fixed "${link/#$HOME/\~} -> ${target/#$HOME/\~}"
+    else warn "${link/#$HOME/\~} is not linked to ${target/#$HOME/\~}"; fi
+}
+part_firefox() {
+    say "firefox"
+    command -v firefox >/dev/null || { say "  skip    firefox is not installed"; return; }
+    local p; p=$(ff_profile) || true
+    [ -n "$p" ] || { warn "no Firefox profile yet (start Firefox once)"; return; }
+    link_to "$p/chrome" "$RICE/firefox"
+    link_to "$p/user.js" "$RICE/firefox/user.js"
+    # The add-on list decides the active theme; it must be the default one
+    # (an add-on theme paints over userChrome). Only edited while Firefox is closed.
+    local active
+    active=$(jq -r '[.addons[] | select(.type=="theme" and .active) | .id] | join(",")' "$p/extensions.json" 2>/dev/null)
+    if [ "$active" = "default-theme@mozilla.org" ] || [ -z "$active" ]; then ok "default theme active"
+    elif [ "$MODE" = apply ] && ! running firefox; then
+        cp "$p/extensions.json" "$p/extensions.json.bak-rice"
+        jq '(.addons[] | select(.type=="theme")) |= (.active = (.id == "default-theme@mozilla.org") | .userDisabled = (.id != "default-theme@mozilla.org"))' \
+            "$p/extensions.json.bak-rice" > "$p/extensions.json" \
+            && rm -f "$p/addonStartup.json.lz4" && fixed "switched Firefox back to the default theme"
+    else warn "an add-on theme is active ($active); close Firefox and run: rice apply firefox"; fi
+}
+
+# ---------------------------------------------------------------- Obsidian
+part_obsidian() {
+    say "obsidian"
+    local cfg="$HOME/.config/obsidian/obsidian.json"
+    [ -f "$cfg" ] || { say "  skip    obsidian has no vaults yet"; return; }
+    if [ "$(jq -r '.frame // ""' "$cfg")" = hidden ]; then ok "window frame hidden"
+    elif [ "$MODE" = apply ] && ! running obsidian; then
+        jq '.frame = "hidden"' "$cfg" > "$cfg.tmp" && mv "$cfg.tmp" "$cfg" && fixed "window frame hidden"
+    else warn "Obsidian draws its own window buttons (close Obsidian, rice apply obsidian)"; fi
+    while IFS= read -r v; do
+        [ -d "$v/.obsidian" ] || continue
+        local snip="$v/.obsidian/snippets/rice.css" app="$v/.obsidian/appearance.json"
+        if cmp -s "$RICE/obsidian/rice.css" "$snip"; then ok "${v##*/}: rice.css"
+        elif [ "$MODE" = apply ]; then mkdir -p "${snip%/*}"; cp "$RICE/obsidian/rice.css" "$snip" && fixed "${v##*/}: rice.css"
+        else warn "${v##*/}: rice.css missing or old"; fi
+        [ -f "$app" ] || echo '{}' > "$app"
+        if jq -e '.theme == "obsidian" and ((.enabledCssSnippets // []) | index("rice")) and ((.enabledCssSnippets // []) | index("noctalia"))' "$app" >/dev/null; then
+            ok "${v##*/}: snippets on"
+        elif [ "$MODE" = apply ]; then
+            jq '.theme = "obsidian" | .enabledCssSnippets = (((.enabledCssSnippets // []) + ["noctalia", "rice"]) | unique)' "$app" > "$app.tmp" \
+                && mv "$app.tmp" "$app" && fixed "${v##*/}: snippets on"
+        else warn "${v##*/}: snippets not enabled"; fi
+    done < <(jq -r '.vaults[]?.path' "$cfg")
+}
+
+# ---------------------------------------------------------------- Spotify
+part_spotify() {
+    say "spotify"
+    command -v spicetify >/dev/null || { say "  skip    spicetify is not installed"; return; }
+    local apps
+    apps="$(sed -n 's/^spotify_path *= *//p' "$HOME/.config/spicetify/config-xpui.ini" 2>/dev/null | head -n1)"
+    apps="${apps/\$HOME/$HOME}"; apps="${apps%/}/Apps"
+    [ -d "$apps" ] || { warn "Spotify is not installed where Spicetify looks ($apps)"; return; }
+    local cfg="$HOME/.config/spicetify/config-xpui.ini"
+    grep -q '^current_theme *= *Rice' "$cfg" && ok "theme Rice" || { [ "$MODE" = apply ] && spicetify -q config current_theme Rice color_scheme rice replace_colors 1 >/dev/null && fixed "theme Rice" || warn "Spicetify theme is not Rice"; }
+    if [ ! -e "$apps/xpui.spa" ]; then ok "Spotify is patched"; return; fi
+    # xpui.spa back = Spotify updated (or was never patched).
+    if [ "$MODE" = apply ]; then
+        # spotify-launcher may still be unpacking the update: wait for it
+        for _ in $(seq 30); do running spotify-launcher || break; sleep 2; done
+        if yes | spicetify -q backup apply >/dev/null 2>&1 || yes | spicetify -q restore backup apply >/dev/null 2>&1; then
+            fixed "re-patched Spotify after an update"
+        else warn "Spicetify could not patch Spotify; run: spicetify restore backup apply"; fi
+    else warn "Spotify was updated and lost its theme (rice apply spotify)"; fi
+}
+
+# ---------------------------------------------------------------- Discord (Vesktop)
+part_discord() {
+    say "discord (vesktop)"
+    command -v vesktop >/dev/null || { say "  skip    vesktop is not installed"; return; }
+    local s="$HOME/.config/vesktop/settings/settings.json"
+    [ -s "$HOME/.config/vesktop/themes/rice.theme.css" ] && ok "rice.theme.css" || warn "vesktop/themes/rice.theme.css missing"
+    mkdir -p "${s%/*}"; [ -f "$s" ] || echo '{}' > "$s"
+    if jq -e '(.enabledThemes // []) | (index("noctalia.theme.css") != null and index("rice.theme.css") != null)' "$s" >/dev/null; then
+        ok "themes enabled"
+    elif [ "$MODE" = apply ]; then
+        jq '.enabledThemes = (((.enabledThemes // []) - ["noctalia.theme.css", "rice.theme.css"]) + ["noctalia.theme.css", "rice.theme.css"])' "$s" > "$s.tmp" \
+            && mv "$s.tmp" "$s" && fixed "themes enabled (restart Vesktop)"
+    else warn "Vesktop themes are not enabled"; fi
+}
+
+# ---------------------------------------------------------------- editors
+part_editor() {
+    say "editors"
+    gset org.gnome.TextEditor style-scheme rice
+    local z="$HOME/.config/zed/settings.json"
+    if [ -f "$z" ]; then
+        grep -q '"dark": "Noctalia Dark"' "$z" && grep -q '"ui_font_family": "JetBrainsMono Nerd Font"' "$z" \
+            && ok "zed: Noctalia Dark, JetBrains Mono" || warn "zed settings lost the theme or font (THEME.md §5)"
+    fi
+}
+
+# ---------------------------------------------------------------- launcher entries
+part_launcher() {
+    say "launcher"
+    local d="$HOME/.local/share/applications/vesktop.desktop"
+    if command -v vesktop >/dev/null; then
+        grep -q '^Name=Discord$' "$d" 2>/dev/null && ok "Vesktop shows as Discord" || {
+            if [ "$MODE" = apply ] && [ -f /usr/share/applications/vesktop.desktop ]; then
+                sed -e 's/^Name=Vesktop$/Name=Discord/' -e 's/^Icon=vesktop$/Icon=discord/' /usr/share/applications/vesktop.desktop > "$d" && fixed "Vesktop shows as Discord"
+            else warn "Vesktop is not renamed to Discord"; fi; }
+        [ -f "$HOME/.local/share/icons/hicolor/256x256/apps/discord.png" ] && ok "Discord icon" || warn "Discord icon missing (~/.local/share/icons/hicolor/256x256/apps/discord.png)"
+    fi
+}
+
+# ---------------------------------------------------------------- login screen
+part_greeter() {
+    say "login / lock screen"
+    local src="$HOME/.config/rice-greeter" dst=/etc/greetd/rice-greeter f same=1
+    [ -d "$dst" ] || { warn "greeter not installed: sudo $src/install.sh"; return; }
+    for f in "$src"/*.qml; do cmp -s "$f" "$dst/${f##*/}" || same=0; done
+    [ "$same" = 1 ] && ok "installed copy is current" || warn "login screen is out of date: sudo $src/install.sh"
+}
+
+ALL_PARTS=(colors gtk firefox obsidian spotify discord editor launcher greeter)
+run_parts() {
+    local parts=("$@"); [ ${#parts[@]} -gt 0 ] || parts=("${ALL_PARTS[@]}")
+    # Spotify first: noctalia's template hook also runs Spicetify, and two
+    # Spicetify runs at once corrupt Spotify's files.
+    local ordered=() p
+    for p in spotify "${parts[@]}"; do
+        [[ " ${parts[*]} " == *" $p "* ]] || continue
+        [[ " ${ordered[*]:-} " == *" $p "* ]] || ordered+=("$p")
+    done
+    for p in "${ordered[@]}"; do
+        if declare -F "part_$p" >/dev/null; then "part_$p"; else warn "unknown part: $p"; fi
+    done
+}
+
+cmd_install() {
+    MODE=apply
+    say "installing the rice"
+    mkdir -p "$HOME/.local/bin" "$HOME/.config/systemd/user"
+    link_to "$HOME/.local/bin/rice" "$RICE/bin/rice"
+    local u
+    for u in rice-apply.service rice-apply.timer rice-spotify.service rice-spotify.path; do
+        link_to "$HOME/.config/systemd/user/$u" "$RICE/systemd/$u"
+    done
+    systemctl --user daemon-reload
+    systemctl --user enable --now rice-apply.timer rice-spotify.path >/dev/null 2>&1 \
+        && ok "automatic re-apply on (login, every 6h, Spotify updates)" || warn "could not enable the systemd user units"
+    run_parts
+    say ""
+    say "With sudo, once: re-apply after pacman updates, and the login screen:"
+    say "  sudo $RICE/system/install.sh"
+    say "  sudo $HOME/.config/rice-greeter/install.sh"
+}
+
+case "${1:-check}" in
+    check)   shift || true; MODE=check; run_parts "$@" ;;
+    apply)   shift; MODE=apply; [ "${1:-}" = "--quiet" ] && { QUIET=1; shift; }; run_parts "$@" ;;
+    install) cmd_install ;;
+    -h|--help|help) sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "usage: rice [check|apply [part...]|install]" >&2; exit 2 ;;
+esac
+
+[ "$QUIET" = 1 ] || { echo; [ "$BROKEN" = 0 ] && { [ "$FIXED" -gt 0 ] && echo "all good ($FIXED fixed)" || echo "all good"; } || echo "$BROKEN thing(s) need attention"; }
+[ "$BROKEN" = 0 ]

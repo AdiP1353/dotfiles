@@ -1,0 +1,10 @@
+[Unit]
+Description=Re-patch Spotify with Spicetify when spotify-launcher updates it
+
+[Path]
+# A patched Spotify has no xpui.spa; an update brings it back.
+PathExists=%h/.local/share/spotify-launcher/install/usr/share/spotify/Apps/xpui.spa
+Unit=rice-spotify.service
+
+[Install]
+WantedBy=default.target

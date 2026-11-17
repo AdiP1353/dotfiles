@@ -1,0 +1,8 @@
+[Unit]
+Description=Re-patch Spotify with Spicetify after an update
+
+[Service]
+Type=oneshot
+# give spotify-launcher time to finish unpacking the update
+ExecStartPre=/usr/bin/sleep 20
+ExecStart=%h/.config/rice/bin/rice apply --quiet spotify

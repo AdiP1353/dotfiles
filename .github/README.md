@@ -31,7 +31,9 @@ Everything follows one style, it's written down in [THEME.md](../.config/rice/TH
 
 Copy what you want into `~/.config`. Back up your own configs first.
 
-For the login screen run `sudo ~/.config/rice-greeter/install.sh`.
+Then run `~/.config/rice/bin/rice install`. It sets everything up and keeps the theme in place after updates (`rice check` shows what's themed).
+
+For the login screen run `sudo ~/.config/rice-greeter/install.sh`, and `sudo ~/.config/rice/system/install.sh` to re-apply the theme after pacman updates.
 
 ### Screenshots
 

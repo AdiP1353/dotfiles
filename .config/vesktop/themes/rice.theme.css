@@ -27,13 +27,21 @@
   outline-offset: -1px;
 }
 
-/* 0px corners everywhere, like every other app in the rice */
-*, *::before, *::after { border-radius: 0 !important; }
-
-/* ...except profile pictures, which stay round */
-[class*="avatar"], [class*="avatar"] img, [class*="Avatar"], [class*="Avatar"] img,
-img[src*="/avatars/"], img[src*="/guild-member"] {
-  border-radius: 50% !important;
+/* 0px corners everywhere, like every other app in the rice, except where
+ * Discord's own shape means something: profile pictures stay round, and
+ * mention notifications (the red count badges, the "new mentions" bar and
+ * @mention pills) keep Discord's look. Those are left out, so Discord's
+ * own styles apply to them untouched. */
+*:not(:is(
+    [class*="avatar"], [class*="Avatar"], [class*="avatar"] *, [class*="Avatar"] *,
+    img[src*="/avatars/"], img[src*="/guild-member"],
+    [class*="numberBadge"], [class*="textBadge"], [class*="iconBadge"], [class*="Badge_"],
+    [class*="mentionsBadge"], [class*="unreadMentionsBar"], [class*="lowerBadge"], [class*="upperBadge"],
+    [class*="mention"], [class*="mention"] *
+  )),
+*:not(:is([class*="Badge"], [class*="badge"], [class*="mention"], [class*="avatar"], [class*="Avatar"]))::before,
+*:not(:is([class*="Badge"], [class*="badge"], [class*="mention"], [class*="avatar"], [class*="Avatar"]))::after {
+  border-radius: 0 !important;
 }
 
 /* no shadows */

@@ -1,0 +1,7 @@
+[Unit]
+Description=Re-apply the rice theme wherever it is missing
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.config/rice/bin/rice apply --quiet
