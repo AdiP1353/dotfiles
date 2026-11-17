@@ -12,6 +12,9 @@
   --border-thickness: 2px !important;
   --gap: 8px !important;
 
+  /* Discord's own minimise / maximise / close buttons */
+  --custom-window-controls: off !important;
+
   /* hovers answer at once: 150ms colour fades at most (THEME §4) */
   --list-item-transition: 150ms ease !important;
   --border-hover-transition: 150ms ease !important;
@@ -26,6 +29,12 @@
 
 /* 0px corners everywhere, like every other app in the rice */
 *, *::before, *::after { border-radius: 0 !important; }
+
+/* ...except profile pictures, which stay round */
+[class*="avatar"], [class*="avatar"] img, [class*="Avatar"], [class*="Avatar"] img,
+img[src*="/avatars/"], img[src*="/guild-member"] {
+  border-radius: 50% !important;
+}
 
 /* no shadows */
 [class*="popout"], [class*="menu_"], [class*="modal"], [class*="tooltip"],
