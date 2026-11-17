@@ -314,4 +314,6 @@ case "${1:-check}" in
 esac
 
 [ "$QUIET" = 1 ] || { echo; [ "$BROKEN" = 0 ] && { [ "$FIXED" -gt 0 ] && echo "all good ($FIXED fixed)" || echo "all good"; } || echo "$BROKEN thing(s) need attention"; }
-[ "$BROKEN" = 0 ]
+# Automatic runs (apply --quiet) log what needs attention but never "fail":
+# those items wait on you (a sudo step, closing an app), not on the theme.
+[ "$QUIET" = 1 ] || [ "$BROKEN" = 0 ]
