@@ -16,4 +16,9 @@ require("config.workspaces")
 
 -- Window border colors from the wallpaper (rendered by noctalia, see THEME.md).
 -- Loaded last so it overrides the fixed colors in config/colors.lua.
-require("config.wallpaper_colors")
+-- Git-ignored and generated: on a fresh machine it only exists after noctalia
+-- renders the first wallpaper, so a missing file is not an error.
+local ok, err = pcall(require, "config.wallpaper_colors")
+if not ok and not tostring(err):find("module 'config.wallpaper_colors' not found", 1, true) then
+  error(err, 0)   -- the file exists but is broken: show that
+end

@@ -8,7 +8,14 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("qs -c rice -d")
     hl.exec_cmd("hypridle")                                   -- idle: dim, lock, sleep (hypr/hypridle.conf)
     hl.exec_cmd("udiskie")                                    -- USB drives: mount + notify (udiskie/config.yml)
+    hl.exec_cmd(os.getenv("HOME") .. "/.config/rice/bin/rice-notify-focus")  -- click a notification: go to its app
     -- Open Freeze Center (fan control) at login; no password, see /etc/polkit-1/rules.d/49-openfreezecenter.rules
-    hl.exec_cmd("pkexec /usr/local/libexec/ofc-root")
-    hl.exec_cmd("xhost +SI:localuser:root")
+    -- Only on machines that have it (this laptop): elsewhere pkexec would just
+    -- fail, and root apps don't need access to the screen.
+    local ofc = io.open("/usr/local/libexec/ofc-root", "r")
+    if ofc then
+        ofc:close()
+        hl.exec_cmd("pkexec /usr/local/libexec/ofc-root")
+        hl.exec_cmd("xhost +SI:localuser:root")
+    end
 end)

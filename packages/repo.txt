@@ -1,6 +1,7 @@
 # Packages the rice needs, from the Arch and CachyOS repositories.
 # `~/dotfiles/install --packages` installs them (pacman --needed: anything you
-# have is skipped). One per line; "#" starts a comment.
+# have is skipped). Several per line is fine; "#" starts a comment. Names your
+# repositories don't have (plain Arch: paru, cachy-update...) go to paru.
 
 # desktop: compositor, shell, login
 hyprland uwsm noctalia quickshell greetd noctalia-greeter
@@ -8,11 +9,12 @@ xdg-desktop-portal-hyprland xdg-desktop-portal-gtk gnome-keyring gcr-4
 # look: theme, icons, font
 adw-gtk-theme qt6ct kvantum breeze-icons ttf-jetbrains-mono-nerd
 # terminal
-kitty alacritty fish fastfetch btop fzf bat zoxide
+kitty alacritty fish fastfetch btop fzf bat zoxide neovim
 # rice tools and helpers
-jq python python-pillow python-gobject librsvg pacman-contrib
+jq python python-pillow python-gobject librsvg pacman-contrib imagemagick
 grim slurp swappy hyprpicker wl-clipboard brightnessctl nwg-displays
 hypridle udiskie cava kernel-modules-hook cachy-update paru
+xorg-xhost   # autostart lets root apps (Open Freeze Center) draw on screen
 # apps the rice themes (drop any you don't use)
 dolphin ark gnome-text-editor gnome-calculator mpv
 firefox obsidian zed vesktop-bin spotify-launcher

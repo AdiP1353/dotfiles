@@ -1,0 +1,179 @@
+#!/usr/bin/env python3
+"""Clicking a notification takes you to the app that sent it (THEME.md §5).
+
+What noctalia does with clicks (checked on the bus, noctalia 5.5):
+  left-click, app offers a click action   ActionInvoked "default", then closed
+                                          with reason 2 ("dismissed by the user")
+  left-click, no click action offered     nothing at all (not even closed), so
+                                          there is nothing to react to
+  right-click                             closed with reason 2
+Neither brings the app's window forward on Hyprland, so this watches the
+session bus for reason-2 closes and does it:
+
+  click (with a click action) or right-click -> focus the sender's window
+  an action button ("Mark as read")    -> nothing (the app handles it)
+  inline reply                         -> nothing
+  several closed at once (Clear all)   -> nothing
+
+The sender's window is found from its D-Bus connection's process (or a parent
+of it: a notify-send in a kitty shell takes you to that kitty), else from the
+notification's desktop-entry / app name. Started at login (hypr autostart);
+one instance only. Never touches the notification itself.
+"""
+import json, os, subprocess, sys, time
+
+import gi
+gi.require_version("Gio", "2.0")
+from gi.repository import Gio, GLib
+
+IFACE = "org.freedesktop.Notifications"
+BURST = 0.25          # seconds: closes closer together than this are "Clear all"
+NAME = "dev.rice.NotifyFocus"
+
+senders = {}          # bus name -> {"app", "entry", "t"} from its last Notify call
+skip = set()          # (bus name, id): an action button or reply, not a click
+pending = []          # [(bus name, time)] clicks waiting out the burst window
+
+
+def log(*a):
+    print("rice-notify-focus:", *a, file=sys.stderr, flush=True)
+
+
+def hypr(*args):
+    try:
+        return subprocess.run(["hyprctl", *args], capture_output=True, text=True, timeout=3).stdout
+    except Exception:
+        return ""
+
+
+def ppid(pid):
+    try:
+        with open(f"/proc/{pid}/stat") as f:
+            return int(f.read().rsplit(")", 1)[1].split()[1])
+    except (OSError, IndexError, ValueError):
+        return 0
+
+
+def sender_pid(bus, name):
+    try:
+        r = bus.call_sync("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus",
+                          "GetConnectionUnixProcessID", GLib.Variant("(s)", (name,)),
+                          GLib.VariantType("(u)"), Gio.DBusCallFlags.NONE, 1000, None)
+        return r.unpack()[0]
+    except GLib.Error:
+        return 0          # it already quit (notify-send): fall back to names
+
+
+def pick_window(bus, name):
+    try:
+        clients = [c for c in json.loads(hypr("clients", "-j") or "[]") if c.get("mapped", True)]
+    except json.JSONDecodeError:
+        return None
+    if not clients:
+        return None
+    recent = lambda c: c.get("focusHistoryID", 1 << 30)   # 0 = focused last
+    # 1. the sender's process, or the nearest parent that owns a window
+    pid = sender_pid(bus, name)
+    while pid > 1:
+        mine = [c for c in clients if c.get("pid") == pid]
+        if mine:
+            return min(mine, key=recent)
+        pid = ppid(pid)
+    # 2. the names it gave (desktop-entry like "firefox", "dev.zed.Zed"; app name)
+    info = senders.get(name, {})
+    keys = {k.lower() for k in (info.get("entry"), info.get("app")) if k}
+    keys |= {k.rsplit(".", 1)[-1] for k in keys}          # dev.zed.zed -> zed
+    def matches(c):
+        cls = {(c.get(f) or "").lower() for f in ("class", "initialClass")} - {""}
+        return bool(cls & keys) or any(k and k in x for k in keys for x in cls)
+    mine = [c for c in clients if matches(c)]
+    return min(mine, key=recent) if mine else None
+
+
+def focus(bus, name):
+    w = pick_window(bus, name)
+    if w:
+        log(f"focus {w.get('class')} ({w['address']}) for {name}")
+        hypr("dispatch", f'hl.dsp.focus({{ window = "address:{w["address"]}" }})')
+    else:
+        log(f"no window for {name} {senders.get(name, {})}")
+
+
+def settle(bus):
+    # One close on its own = a click. Several inside BURST = "Clear all": ignore.
+    now = time.monotonic()
+    if pending and now - pending[-1][1] >= BURST:
+        batch = pending[:]
+        pending.clear()
+        if len(batch) == 1:
+            focus(bus, batch[0][0])
+    return GLib.SOURCE_REMOVE
+
+
+def on_message(bus, msg):
+    kind, member = msg.get_message_type(), msg.get_member()
+    try:
+        body = msg.get_body().unpack() if msg.get_body() else ()
+    except Exception:
+        return GLib.SOURCE_REMOVE
+    if kind == Gio.DBusMessageType.METHOD_CALL and member == "Notify" and len(body) >= 7:
+        hints = body[6] or {}
+        senders[msg.get_sender()] = {"app": body[0], "entry": hints.get("desktop-entry"), "t": time.time()}
+        if len(senders) > 200:   # forget the oldest
+            for k in sorted(senders, key=lambda k: senders[k]["t"])[:100]:
+                senders.pop(k, None)
+    elif kind == Gio.DBusMessageType.SIGNAL:
+        dest = msg.get_destination()
+        if not dest or not body:
+            return GLib.SOURCE_REMOVE
+        nid = body[0]
+        if member == "ActionInvoked" and body[1] != "default":
+            skip.add((dest, nid))
+        elif member == "NotificationReplied":
+            skip.add((dest, nid))
+        elif member == "NotificationClosed" and body[1] == 2:
+            if (dest, nid) in skip:
+                skip.discard((dest, nid))
+                return GLib.SOURCE_REMOVE
+            pending.append((dest, time.monotonic()))
+            GLib.timeout_add(int(BURST * 1000) + 20, settle, bus)
+    return GLib.SOURCE_REMOVE
+
+
+def main():
+    bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+    # one instance: whoever holds the name runs, everyone else leaves
+    owned = bus.call_sync("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus",
+                          "RequestName", GLib.Variant("(su)", (NAME, 4)),   # 4 = DO_NOT_QUEUE
+                          GLib.VariantType("(u)"), Gio.DBusCallFlags.NONE, -1, None).unpack()[0]
+    if owned != 1:
+        return 0
+    # a second connection that only watches (a monitor can't make calls)
+    addr = Gio.dbus_address_get_for_bus_sync(Gio.BusType.SESSION, None)
+    mon = Gio.DBusConnection.new_for_address_sync(
+        addr, Gio.DBusConnectionFlags.AUTHENTICATION_CLIENT | Gio.DBusConnectionFlags.MESSAGE_BUS_CONNECTION,
+        None, None)
+    rules = [f"type='method_call',interface='{IFACE}',member='Notify'",
+             f"type='signal',interface='{IFACE}',member='ActionInvoked'",
+             f"type='signal',interface='{IFACE}',member='NotificationReplied'",
+             f"type='signal',interface='{IFACE}',member='NotificationClosed'"]
+    # GDBus filters run on its worker thread: hand our messages to the main loop
+    # and drop them (a monitor must never answer them); let everything else
+    # through, e.g. the reply to BecomeMonitor below.
+    def grab(_c, m, incoming):
+        if incoming and m.get_interface() == IFACE and m.get_message_type() in (
+                Gio.DBusMessageType.METHOD_CALL, Gio.DBusMessageType.SIGNAL):
+            GLib.idle_add(on_message, bus, m)
+            return None
+        return m
+    mon.add_filter(grab)
+    mon.call_sync("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus.Monitoring",
+                  "BecomeMonitor", GLib.Variant("(asu)", (rules, 0)), None, Gio.DBusCallFlags.NONE, -1, None)
+    mon.connect("closed", lambda *_: loop.quit())
+    loop = GLib.MainLoop()
+    loop.run()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

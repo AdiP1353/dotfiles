@@ -1,5 +1,11 @@
 [Unit]
 Description=Re-patch Spotify with Spicetify after an update
+# The path unit restarts this as long as xpui.spa exists, so a patch that
+# keeps failing (no Spicetify, no config...) would loop forever. Three tries
+# an hour, then the watcher stops; `rice check` reports it and `rice apply
+# spotify` restarts it once Spotify is patched.
+StartLimitIntervalSec=1h
+StartLimitBurst=3
 
 [Service]
 Type=oneshot

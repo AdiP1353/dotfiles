@@ -1,9 +1,12 @@
 [Unit]
-Description=Re-apply the rice theme at login and every 6 hours
+Description=Re-apply the rice theme when the desktop starts and every 6 hours
+# Runs with the desktop session (uwsm starts graphical-session.target), not
+# from boot, so the first run never comes before Hyprland and noctalia.
+PartOf=graphical-session.target
 
 [Timer]
-OnStartupSec=1min
+OnActiveSec=1min
 OnUnitActiveSec=6h
 
 [Install]
-WantedBy=timers.target
+WantedBy=graphical-session.target

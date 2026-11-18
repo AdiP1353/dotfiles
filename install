@@ -29,29 +29,51 @@ done
 list() { sed 's/#.*//' "$D/packages/$1" | tr -s ' \t' '\n' | grep -v '^$' || true; }
 
 if [ "$packages" = 1 ]; then
-    echo "packages from the repositories:"; list repo.txt | tr '\n' ' '; echo; echo
-    echo "packages from the AUR:"; list aur.txt | tr '\n' ' '; echo; echo
+    # pacman refuses the whole list if one name is unknown, so anything the
+    # enabled repositories don't have (plain Arch: paru, cachy-update...) goes
+    # to paru with the AUR list instead.
+    repo=(); aur=()
+    for p in $(list repo.txt); do
+        if pacman -Si "$p" >/dev/null 2>&1; then repo+=("$p"); else aur+=("$p"); fi
+    done
+    for p in $(list aur.txt); do aur+=("$p"); done
+    echo "packages from the repositories:"; echo "${repo[*]:-}"; echo
+    echo "packages from the AUR (paru):"; echo "${aur[*]:-}"; echo
     read -r -p "install them? [y/N] " ok
     if [ "${ok,,}" = y ]; then
-        # shellcheck disable=SC2046
-        sudo pacman -S --needed $(list repo.txt)
-        if command -v paru >/dev/null; then paru -S --needed $(list aur.txt)
-        else echo "paru isn't installed: install the AUR packages yourself: $(list aur.txt | tr '\n' ' ')"; fi
+        [ ${#repo[@]} -eq 0 ] || sudo pacman -S --needed "${repo[@]}"
+        if [ ${#aur[@]} -gt 0 ]; then
+            if command -v paru >/dev/null; then paru -S --needed "${aur[@]}"
+            else echo "paru isn't installed (https://github.com/Morganamilo/paru): install these yourself: ${aur[*]}"; fi
+        fi
     fi
 fi
 
-n=0
+# shellcheck source=.config/rice/lib/links.sh
+. "$D/.config/rice/lib/links.sh"
+n=0; skipped=()
 while IFS= read -r -d '' line; do
     mode=${line%% *}; path=${line#*$'\t'}
-    case "$path" in install|.gitignore|packages/*) continue ;; esac
-    case "$path" in .github/*) [ "$path" = ".github/README.md" ] || continue ;; esac
-    dst="$HOME/$path"; mkdir -p "$(dirname "$dst")"
+    dots_skip "$path" && continue
+    dst="$HOME/$path"
+    if via=$(dots_parent_link "$path"); then skipped+=("$path (${via/#$HOME/\~} is a link)"); continue; fi
+    mkdir -p "$(dirname "$dst")"
     if [ "$mode" = 120000 ]; then [ -L "$dst" ] || cp -P "$D/$path" "$dst"; continue; fi
     [ "$(readlink "$dst" 2>/dev/null)" = "$D/$path" ] && continue
-    [ -e "$dst" ] || [ -L "$dst" ] && mv "$dst" "$dst.bak-rice"
+    if [ -e "$dst" ] || [ -L "$dst" ]; then
+        # never overwrite an older backup: the first one is your original
+        bak="$dst.bak-rice"
+        if [ -e "$bak" ] || [ -L "$bak" ]; then bak="$dst.bak-rice-$(date +%Y%m%d-%H%M%S)-$$"; fi
+        mv "$dst" "$bak"; echo "kept your old ~/$path as ${bak/#$HOME/\~}"
+    fi
     ln -s "$D/$path" "$dst"; n=$((n+1))
 done < <(git -C "$D" ls-files -s -z)
 echo "linked $n files from $D into $HOME"
+if [ ${#skipped[@]} -gt 0 ]; then
+    echo "not linked: these go through a folder that is a link to somewhere else"
+    echo "(another dotfiles setup?). Replace that link with a real folder and run again:"
+    printf '  %s\n' "${skipped[@]}"
+fi
 [ "$links_only" = 1 ] && exit 0
 
 "$HOME/.config/rice/bin/rice" install || true

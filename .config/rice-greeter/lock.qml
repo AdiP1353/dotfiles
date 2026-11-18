@@ -65,10 +65,23 @@ ShellRoot {
     // Qt.quit() is not connected in Quickshell: end our own process.
     Process { id: quitProc; command: ["sh", "-c", "sleep 0.2; kill $PPID"] }
 
+    // F1 / F2 on the lock screen: a session with unsaved work is behind it, so
+    // the key has to be pressed twice (within 3 s) to power off or reboot.
+    property string armed: ""
     function power(action) {
+        if (armed !== action) {
+            armed = action
+            status = "press " + (action === "poweroff" ? "F1" : "F2") + " again to "
+                   + (action === "poweroff" ? "shut down" : "reboot")
+            statusIsError = false
+            disarm.restart()
+            return
+        }
+        armed = ""; disarm.stop()
         powerProc.command = ["systemctl", action]
         powerProc.running = true
     }
+    Timer { id: disarm; interval: 3000; onTriggered: { root.armed = ""; root.status = "" } }
     Process { id: powerProc }
 
     Timer {
