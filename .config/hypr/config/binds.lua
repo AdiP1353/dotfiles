@@ -108,8 +108,9 @@ hl.bind("ALT + SHIFT + Tab",   hl.dsp.exec_cmd("qs -c rice ipc call switcher pre
 -- Shortcuts window (~/.config/quickshell/rice/Shortcuts.qml)
 hl.bind(mainMod .. " + H",     hl.dsp.exec_cmd("qs -c rice ipc call shortcuts toggle"))
 hl.bind(mainMod .. " + M",     hl.dsp.exec_cmd("qs -c rice ipc call windowmenu toggle"))
--- Copilot key (it sends SUPER + SHIFT + F23): drop-down terminal
-hl.bind("SUPER + SHIFT + F23", toggleDropdown)
+-- Copilot key: drop-down terminal. It sends SUPER + SHIFT + key code 201
+-- (F23 on paper, but this layout gives that key no name), so bind the code.
+hl.bind("SUPER + SHIFT + code:201", toggleDropdown)
 hl.bind(mainMod .. " + Tab",   hl.dsp.exec_cmd(noctCall .. "window-switcher"))
 
 -- Move active window around workspaces & monitors
