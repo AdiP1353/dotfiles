@@ -278,6 +278,10 @@ part_session() {
     command -v hypridle >/dev/null && { pgrep -x hypridle >/dev/null && ok "hypridle running" || { [ "$MODE" = apply ] && (hyprctl dispatch "hl.dsp.exec_cmd(\"hypridle\")" >/dev/null) && fixed "hypridle started" || warn "hypridle is not running"; }; } || warn "hypridle is not installed (sudo pacman -S hypridle)"
     command -v udiskie >/dev/null && { pgrep -x udiskie >/dev/null && ok "udiskie running" || { [ "$MODE" = apply ] && (hyprctl dispatch "hl.dsp.exec_cmd(\"udiskie\")" >/dev/null) && fixed "udiskie started" || warn "udiskie is not running"; }; } || warn "udiskie is not installed (sudo pacman -S udiskie)"
     command -v checkupdates >/dev/null && ok "update check (checkupdates)" || warn "checkupdates missing (pacman-contrib)"
+    # only the rice lock screen: noctalia must not lock on its own before sleep
+    if [ "$(noctalia msg config-get lockscreen.lock_before_suspend 2>/dev/null)" = "false" ]; then ok "only the rice lock before sleep"
+    elif [ "$MODE" = apply ]; then noctalia msg config-set lockscreen.lock_before_suspend false >/dev/null && fixed "noctalia no longer locks before sleep"
+    else warn "noctalia locks with its own screen before sleep (rice apply session)"; fi
 }
 
 ALL_PARTS=(colors gtk qt cursor desktop firefox web obsidian spotify discord editor terminal video session launcher greeter)
