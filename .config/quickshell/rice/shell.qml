@@ -40,6 +40,8 @@ ShellRoot {
         target: "shortcuts"
         function toggle(): void { shortcuts.toggle() }
         function close(): void { shortcuts.close() }
+        function search(q: string): void { shortcuts.show(); shortcuts.setQuery(q) }
+        function results(): string { return shortcuts.results.map(r => r.keys + " = " + r.desc).join(" | ") }
     }
 
     IpcHandler {
