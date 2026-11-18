@@ -135,13 +135,13 @@ hl.window_rule({ match = { class = "^(dev\\.zed\\.Zed)$" },             workspac
 hl.window_rule({ match = { class = "^(vesktop|whatsapp)$" },            workspace = "6" })
 
 -- Drop-down terminal (Copilot key, binds.lua): Kitty in its own hidden
--- workspace, floating across the top of the screen under the bar, 45% high.
+-- workspace, floating over the whole screen under the bar.
 -- Shown and hidden with the special-workspace slide (animations.lua).
 hl.window_rule({
     match     = { class = "^(rice-dropdown)$" },
     workspace = "special:dropdown",
     float     = true,
-    size      = { "monitor_w - 8", "monitor_h * 0.45" },
+    size      = { "monitor_w - 8", "monitor_h - 38" },   -- the whole screen under the bar
     move      = { 4, 34 },
 })
 
