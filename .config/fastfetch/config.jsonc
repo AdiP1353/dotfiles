@@ -1,43 +1,52 @@
-// Terminal greeting (fish runs this on every new terminal; see
-// ~/.config/fish/config.fish). Two sections, "hardware" and "software",
-// each opened by a titled line and closed by a plain one; every row is an
-// icon, " :: ", and the value.
-// Calm colours (THEME.md §3): icons in one soft teal from the Kitty palette,
-// usage percentages in muted green, everything else plain grey.
-// The art on the left is ~/.config/fastfetch/logo.txt. A logo.png in the same
-// folder, if you ever add one, is shown instead (fish greeting).
+// Terminal greeting (fish runs it on every new terminal; ~/.config/fish/config.fish).
+// Three boxes, like a tree: "hardware", "software" (system, then desktop) and
+// "uptime / age". Every row is a branch (├ / └), a coloured icon and the value.
+// Colours are the terminal's own 16 (the rice's fixed minimal palette):
+// box lines dim grey, titles light grey, icons yellow / blue / magenta.
+// The image on the left is ~/.config/fastfetch/logo.png, shown by the fish
+// greeting: Kitty's image protocol in Kitty, logo.ansi (the same picture as
+// coloured text blocks, from make-logo.py) in every other terminal.
 {
   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
-  // Your ASCII art (logo.txt) in plain light grey, centred next to the specs.
   "logo": {
-    "type": "file",
-    "source": "~/.config/fastfetch/logo.txt",
-    "color": { "1": "37" },
-    "padding": { "top": 3, "left": 2, "right": 4 }
+    "type": "none"
   },
   "display": {
-    "separator": " :: ",
-    "color": { "keys": "36", "separator": "90", "output": "37" },
-    // usage percentages: one calm green whatever the value
-    "percent": { "type": 1, "color": { "green": "32", "yellow": "32", "red": "32" } }
+    "separator": "",
+    "color": { "keys": "33", "separator": "90", "output": "37" },
+    "percent": { "type": 1, "color": { "green": "32", "yellow": "33", "red": "31" } }
   },
   "modules": [
-    { "type": "custom", "format": "{#90}┌────────────── {#37}hardware{#90} ──────────────┐" },
-    { "type": "host",     "key": "", "format": "{name}" },
-    { "type": "command",  "key": "", "text": "printf '%s (%sc/%st)' \"$(grep -m1 'model name' /proc/cpuinfo | sed -E 's/.*: //; s/.*(i[3579]-[0-9A-Z]+|Ryzen [0-9] [0-9A-Z]+).*/\\1/')\" \"$(lscpu -p=core | grep -v '^#' | sort -u | wc -l)\" \"$(nproc)\"" },
-    { "type": "gpu",      "key": "", "format": "{name}" },
-    { "type": "memory",   "key": "\udb80\udf5b", "format": "{used} / {total} ({#32}{percentage}{#})" },
-    { "type": "disk",     "key": "", "folders": "/", "format": "{size-used} / {size-total} ({#32}{size-percentage}{#})" },
-    { "type": "display",  "key": "", "format": "{name} ({width}x{height})" },
+    { "type": "custom", "format": "{#90}┌──────────────────── {#37}hardware{#90} ────────────────────┐" },
+    { "type": "cpu",    "key": "│ ├ 󰻠 ", "keyColor": "33", "format": "{name} ({cores-logical}) @ {freq-max}" },
+    { "type": "gpu",    "key": "│ ├ 󰢮 ", "keyColor": "33", "format": "{name} [{type}]" },
+    { "type": "memory", "key": "│ ├ 󰍛 ", "keyColor": "33", "format": "{used} / {total} ({percentage})" },
+    { "type": "disk",   "key": "│ └ 󰋊 ", "keyColor": "33", "folders": "/:/boot", "format": "{size-used} / {size-total} ({size-percentage}) - {filesystem}" },
+    { "type": "custom", "format": "{#90}└────────────────────────────────────────────────┘" },
     "break",
-    { "type": "custom", "format": "{#90}├────────────── {#37}software{#90} ──────────────┤" },
-    { "type": "os",       "key": "", "format": "{name} {arch}" },
-    { "type": "kernel",   "key": "", "format": "Linux {release}" },
-    { "type": "wm",       "key": "", "format": "{pretty-name}" },
-    { "type": "datetime", "key": "", "format": "{year}-{month-pretty}-{day-pretty} {hour-pretty}:{minute-pretty}:{second-pretty}" },
-    { "type": "shell",    "key": "", "format": "{pretty-name} {version}" },
-    { "type": "packages", "key": "" },
+
+    { "type": "custom", "format": "{#90}┌──────────────────── {#37}software{#90} ────────────────────┐" },
+    { "type": "os",           "key": "{#36}os: ", "keyColor": "36", "format": "{name} {arch}" },
+    { "type": "kernel",       "key": "│ ├ 󰌽 ", "keyColor": "34", "format": "Linux {release}" },
+    { "type": "packages",     "key": "│ ├ 󰏖 ", "keyColor": "34" },
+    { "type": "terminal",     "key": "│ ├ 󰆍 ", "keyColor": "34", "format": "{pretty-name}" },
+    { "type": "terminalfont", "key": "│ ├ 󰛖 ", "keyColor": "34" },
+    { "type": "shell",        "key": "│ └ 󰈺 ", "keyColor": "34", "format": "{pretty-name} {version}" },
     "break",
-    { "type": "custom", "format": "{#90}└──────────────────────────────────────┘" }
+    { "type": "wm",           "key": "{#36}wm: ", "keyColor": "36", "format": "{pretty-name} {version} ({protocol-name})" },
+    { "type": "lm",           "key": "│ ├ 󰍂 ", "keyColor": "35", "format": "{service}" },
+    { "type": "theme",        "key": "│ ├ 󰉼 ", "keyColor": "35", "format": "{theme2}, {theme1}" },
+    { "type": "icons",        "key": "│ ├ 󰀻 ", "keyColor": "35", "format": "{icons2}" },
+    { "type": "cursor",       "key": "│ ├ 󰆿 ", "keyColor": "35", "format": "{theme}" },
+    { "type": "gpu",          "key": "│ ├ 󰾲 ", "keyColor": "35", "format": "{driver}" },
+    { "type": "font",         "key": "│ └ 󰛖 ", "keyColor": "35", "format": "{font2}" },
+    { "type": "custom", "format": "{#90}└────────────────────────────────────────────────┘" },
+    "break",
+
+    { "type": "custom", "format": "{#90}┌───────────────── {#37}uptime / age{#90} ─────────────────┐" },
+    { "type": "command", "key": "  os age  ", "keyColor": "35",
+      "text": "b=$(stat -c %W /); [ \"$b\" -gt 0 ] && echo \"$(( ($(date +%s) - b) / 86400 )) days\" || echo unknown" },
+    { "type": "uptime",  "key": "  uptime  ", "keyColor": "35" },
+    { "type": "custom", "format": "{#90}└────────────────────────────────────────────────┘" }
   ]
 }
