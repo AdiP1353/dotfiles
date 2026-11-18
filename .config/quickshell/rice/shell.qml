@@ -34,6 +34,7 @@ ShellRoot {
         function close(): void { switcher.close() }
         function select(i: int): void { switcher.selected = i }
         function pick(): void { switcher.pick() }
+        function style(v: string): void { switcher.variant = v }   // strip | split | grid
         function state(): string { return (switcher.open ? "open " : "closed ") + switcher.selected + "/" + switcher.windows.length }
     }
     IpcHandler {
