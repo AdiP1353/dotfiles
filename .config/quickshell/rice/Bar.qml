@@ -9,7 +9,8 @@
 //   workspace -> switch to it      window title -> window switcher (ALT + Tab),
 //                                  right-click: window menu (move, float, close...)
 //   time/date -> calendar          net -> network      vol -> audio
-//   bat -> power                   tray icon -> the app (right-click: its menu)
+//   bat -> power                   tray icon -> the app (right-click: its menu in the
+//                                  rice's style, with "close <app>" at the bottom)
 // vol also: scroll to change the volume, right-click to mute.
 
 import QtQuick
@@ -70,6 +71,17 @@ PanelWindow {
             height: 1
             color: Theme.text
         }
+    }
+    // right-click menu for tray icons (TrayMenu.qml), one per screen
+    TrayMenu { id: trayMenu; screen: bar.screen }
+    IpcHandler {   // for testing: qs -c rice ipc call tray_<screen> menu <n>
+        target: "tray_" + bar.screen.name
+        function menu(n: int): void {
+            const it = SystemTray.items.values[n]
+            if (it) trayMenu.show(it, bar.width - 200)
+        }
+        function list(): string { return SystemTray.items.values.map(i => i.id).join(", ") }
+        function close(): void { trayMenu.close() }
     }
     function panel(page) { Quickshell.execDetached(["noctalia", "msg", "panel-toggle", "control-center", page]) }
 
@@ -175,8 +187,9 @@ PanelWindow {
                         anchors.fill: parent
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         onClicked: mouse => {
+                            // right-click: the app's menu in the rice's style, with "close <app>"
                             if (mouse.button === Qt.RightButton && modelData.hasMenu)
-                                modelData.display(bar, bar.mapFromItem(parent, 0, parent.height).x, bar.implicitHeight)
+                                trayMenu.show(modelData, bar.mapFromItem(parent, parent.width / 2, 0).x)
                             else modelData.activate()
                         }
                     }
