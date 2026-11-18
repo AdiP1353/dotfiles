@@ -124,6 +124,8 @@ end
 -- Move & Resize with mouse
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag())
 hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize())
+-- ALT + right-click any window: the rice's window menu at the cursor (move to a workspace, float, close...)
+hl.bind("ALT + mouse:273", hl.dsp.exec_cmd("qs -c rice ipc call windowmenu openAtCursor"))
 
 -- Zoom
 local function zoomfunction(value)

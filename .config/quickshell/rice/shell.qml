@@ -54,6 +54,7 @@ ShellRoot {
         target: "windowmenu"
         function toggle(): void { windowMenu.open ? windowMenu.close() : windowMenu.show(-1) }   // SUPER + M
         function openAt(x: int): void { windowMenu.show(x) }
+        function openAtCursor(): void { windowMenu.showAtCursor() }   // ALT + right-click
         function close(): void { windowMenu.close() }
         function state(): string { return (windowMenu.open ? "open " : "closed ") + windowMenu.addr + " rows:" + windowMenu.rows.map(r => r.id).join(",") + " ws:" + windowMenu.workspaces.join(",") }
     }

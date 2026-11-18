@@ -1,5 +1,6 @@
-// Window menu, minimal style (THEME.md §3): right-click the window title in
-// the top bar (or press SUPER + M) for the focused window's options, as plain
+// Window menu, minimal style (THEME.md §3): ALT + right-click any window
+// (the menu opens at the cursor), right-click the window title in the top
+// bar, or press SUPER + M (the focused window) for that window's options, as plain
 // lowercase lines in one 2px box. The selected line is bright with a 1px
 // accent underline.
 //
@@ -54,21 +55,48 @@ PanelWindow {
         return r
     }
 
-    // x: where to put the box (the bar's title), or -1 for the screen's centre.
-    // Reads the focused window and the workspaces straight from Hyprland, so
-    // the details are always current.
+    // show(x):      the focused window; the box under the bar at x (the bar's
+    //               title), or in the middle of the screen when x is -1
+    // showAtCursor: the window under the mouse (ALT + right-click); the box
+    //               opens at the cursor
+    // Details come straight from Hyprland, so they are always current.
     property real pendingX: -1
-    function show(x) { pendingX = x; info.running = true }
+    property bool atCursor: false
+    property real menuY: 0
+    function show(x) { pendingX = x; atCursor = false; info.running = true }
+    function showAtCursor() { atCursor = true; info.running = true }
     Process {
         id: info
-        command: ["sh", "-c", "hyprctl activewindow -j; echo RICE_SPLIT; hyprctl workspaces -j"]
+        command: ["sh", "-c", "hyprctl activewindow -j; echo RICE_SPLIT; hyprctl workspaces -j; echo RICE_SPLIT; "
+                  + "hyprctl cursorpos -j; echo RICE_SPLIT; hyprctl clients -j; echo RICE_SPLIT; hyprctl monitors -j"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const parts = text.split("RICE_SPLIT")
-                let w = {}, wss = []
-                try { w = JSON.parse(parts[0]) } catch (e) { return }
-                try { wss = JSON.parse(parts[1]) } catch (e) {}
-                if (!w || !w.address) return             // nothing focused
+                const parse = (t, d) => { try { return JSON.parse(t) } catch (e) { return d } }
+                let w = parse(parts[0], {})
+                const wss = parse(parts[1], []), cur = parse(parts[2], null)
+                const clients = parse(parts[3], []), mons = parse(parts[4], [])
+                let mon = mons.find(m => m.focused) || mons[0]
+                if (win.atCursor && cur) {
+                    // the window under the mouse: floating ones sit on top, then the most recently used
+                    mon = mons.find(m => cur.x >= m.x && cur.x < m.x + m.width && cur.y >= m.y && cur.y < m.y + m.height) || mon
+                    const shown = [mon.activeWorkspace && mon.activeWorkspace.id, mon.specialWorkspace && mon.specialWorkspace.id]
+                    const under = clients.filter(c => c.mapped && !c.hidden
+                            && (shown.includes(c.workspace.id) || c.pinned)
+                            && cur.x >= c.at[0] && cur.x < c.at[0] + c.size[0]
+                            && cur.y >= c.at[1] && cur.y < c.at[1] + c.size[1])
+                        .sort((a, b) => (b.floating - a.floating) || (a.focusHistoryID - b.focusHistoryID))
+                    if (!under.length) return               // clicked on the wallpaper
+                    w = under[0]
+                    win.menuX = cur.x - mon.x
+                    win.menuY = cur.y - mon.y
+                } else {
+                    win.menuX = win.pendingX
+                    win.menuY = -1
+                }
+                if (!w || !w.address) return                  // nothing focused
+                const scr = Quickshell.screens.find(s => mon && s.name === mon.name)
+                if (scr) win.screen = scr
                 win.addr = w.address
                 win.title = (w.title || w.class || "window").toLowerCase()
                 win.floating = !!w.floating
@@ -78,7 +106,6 @@ PanelWindow {
                     .sort((a, b) => (parseInt(a) || 999) - (parseInt(b) || 999)).concat(["new"])
                 win.wsIndex = Math.max(0, win.workspaces.findIndex(n => n !== win.currentWs))
                 win.row = 0
-                win.menuX = win.pendingX
                 win.open = true
                 keys.forceActiveFocus()
             }
@@ -133,7 +160,9 @@ PanelWindow {
         width: 300
         height: col.implicitHeight + Theme.s3 * 2
         x: win.menuX < 0 ? (win.width - width) / 2 : Math.min(Math.max(4, win.menuX), win.width - width - 4)
-        y: win.menuX < 0 ? (win.height - height) / 3 : 30 + 4   // just under the bar
+        // at the cursor (kept on screen), under the bar, or a third of the way down
+        y: win.atCursor ? Math.min(Math.max(30 + 4, win.menuY), win.height - height - 4)
+                        : (win.menuX < 0 ? (win.height - height) / 3 : 30 + 4)
         MouseArea { anchors.fill: parent }
 
         Column {

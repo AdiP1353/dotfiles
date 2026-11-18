@@ -34,6 +34,7 @@ PanelWindow {
             ["alt tab", "switch windows"],
             ["super escape", "kill (click a window)"],
             ["super drag", "move / resize"],
+            ["alt right-click", "window menu at the cursor"],
             ["super m", "window menu (or right-click title)"] ] },
         { title: "apps", rows: [
             ["super space", "launcher"],
