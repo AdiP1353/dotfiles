@@ -210,7 +210,8 @@ hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(noctCall .. "brightness-down"),
 -- Screen Capture
 hl.bind(mainMod .. " + P",     hl.dsp.exec_cmd("qs -c rice ipc call display toggle"))
 hl.bind(mainMod .. " + SHIFT + P", hl.dsp.exec_cmd("hyprpicker -a -n"))
-hl.bind("Print", hl.dsp.exec_cmd('grim -g "$($HOME/.local/bin/rice-slurp)" - | swappy -f -'))
+-- Print: a region, saved to ~/Pictures/Screenshots, copied, then opened in swappy
+hl.bind("Print", hl.dsp.exec_cmd("~/.config/rice/bin/rice-screenshot"))
 hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd(noctCall .. "screenshot-fullscreen"))
 -- Theming and Wallpaper
 hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd(noctCall .. "panel-toggle wallpaper"))

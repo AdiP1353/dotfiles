@@ -3,3 +3,5 @@ text_font=JetBrainsMono Nerd Font
 show_panel=false
 line_size=2
 early_exit=true
+save_dir=$HOME/Pictures/Screenshots
+save_filename_format=screenshot_%Y%m%d_%H%M%S_edit.png

@@ -1,0 +1,13 @@
+#!/bin/sh
+# Print: pick a region (rice-slurp), save it to ~/Pictures/Screenshots straight
+# away, copy it to the clipboard, then open it in swappy to mark it up (saving
+# from swappy writes a copy to the same folder).
+set -eu
+dir="$HOME/Pictures/Screenshots"
+mkdir -p "$dir"
+region=$("$HOME/.local/bin/rice-slurp") || exit 0          # Esc: nothing taken
+file="$dir/screenshot_$(date +'%Y%m%d_%H%M%S').png"   # same names as noctalia's full-screen shots
+grim -g "$region" "$file"
+wl-copy --type image/png < "$file"
+noctalia msg notification-show "screenshot saved" "${file#$HOME/}" >/dev/null 2>&1 || true
+swappy -f "$file"

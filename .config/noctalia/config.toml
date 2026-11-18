@@ -60,7 +60,8 @@ popup_shadows = false
     copy_to_clipboard = false
     pipe_command = "swash --stdin --name \"swash-$(date +'%Y-%m-%d_%H:%M:%S').png\""
     pipe_to_command = true
-    save_to_file = false
+    save_to_file = true
+    directory = "/home/aprakash/Pictures/Screenshots"   # every screenshot is saved here
 
     [[shell.session.actions]]
     # the rice lock screen, not noctalia\'s (THEME.md §5)
