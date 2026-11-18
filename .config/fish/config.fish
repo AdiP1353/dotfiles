@@ -5,7 +5,8 @@ source /usr/share/cachyos-fish-config/cachyos-config.fish
 # protocol in Kitty, as coloured text blocks (logo.ansi) in any other terminal, so it
 # shows everywhere instead of text art.
 function fish_greeting
-    set -l logo ~/.config/fastfetch/logo.png
+    set -l logo ~/.config/fastfetch/logo-tinted.png   # logo.png in the wallpaper colours (make-logo.py)
+    test -f $logo; or set logo ~/.config/fastfetch/logo.png
     if not test -f $logo
         fastfetch
     else if test "$TERM" = xterm-kitty
