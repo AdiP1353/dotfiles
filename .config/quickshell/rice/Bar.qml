@@ -1,13 +1,13 @@
 // The top bar, always on (THEME.md §3, minimal style): 28px of plain
 // lowercase text on the surface, closed by the rice's 2px line.
-//   left    workspaces (current one bright with an accent underline), window title,
+//   left    workspaces (current one bright with an accent underline),
 //           now playing (only while something plays: click to pause/play)
 //   centre  time and date
 //   right   tray icons, then  wifi eduroam · vol 35% · bat 100%
 //           (dim lowercase label, bright value, dim dots between)
 // Every part is clickable and opens its own page (noctalia):
-//   workspace -> switch to it      window title -> window switcher (ALT + Tab),
-//                                  right-click: window menu (move, float, close...)
+//   workspace -> switch to it      (no window title: ALT + right-click a window or
+//                                  SUPER + M for the window menu)
 //   time/date -> calendar          net -> network      vol -> audio
 //   bat -> power                   tray icon -> the app (right-click: its menu in the
 //                                  rice's style, with "close <app>" at the bottom)
@@ -113,24 +113,6 @@ PanelWindow {
                         color: Theme.primary
                     }
                     MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: modelData.activate() }
-                }
-            }
-        }
-
-        Text {
-            // title + now playing must never reach the centred clock
-            width: Math.min(implicitWidth, bar.width * 0.2)
-            elide: Text.ElideRight
-            text: Hyprland.activeToplevel && Hyprland.activeToplevel.title ? Hyprland.activeToplevel.title.toLowerCase() : ""
-            color: Theme.textDim
-            font { family: Theme.font; pointSize: Theme.fontSize }
-            Hit {
-                acceptedButtons: Qt.LeftButton | Qt.RightButton
-                onClicked: mouse => {
-                    if (mouse.button === Qt.RightButton)   // window menu: move to a workspace, float, close...
-                        Quickshell.execDetached(["qs", "-c", "rice", "ipc", "call", "windowmenu", "openAt",
-                                                 String(Math.round(parent.mapToItem(null, 0, 0).x))])
-                    else Quickshell.execDetached(["qs", "-c", "rice", "ipc", "call", "switcher", "open"])
                 }
             }
         }

@@ -38,7 +38,7 @@ PanelWindow {
             ["super q", "close (spotify, discord: hide)", "quit exit kill app"],
             ["super escape", "kill (click a window)", "force quit frozen"],
             ["alt right-click", "window menu at the cursor", "move workspace float pin close options"],
-            ["super m", "window menu (or right-click title)", "move workspace float pin close options"],
+            ["super m", "window menu (focused window)", "move workspace float pin close options"],
             ["super f", "fullscreen", "full screen"],
             ["super d", "maximise", "maximize bigger"],
             ["super alt space", "float / tile", "floating tiling"],
