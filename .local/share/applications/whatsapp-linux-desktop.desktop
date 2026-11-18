@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=WhatsApp
-Exec=/home/aprakash/.config/rice/whatsapp/whatsapp.sh
+Exec=sh -c '"$HOME/.config/rice/whatsapp/whatsapp.sh"'
 Terminal=false
 Type=Application
 Icon=whatsapp-linux-desktop

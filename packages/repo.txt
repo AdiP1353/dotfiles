@@ -1,0 +1,18 @@
+# Packages the rice needs, from the Arch and CachyOS repositories.
+# `~/dotfiles/install --packages` installs them (pacman --needed: anything you
+# have is skipped). One per line; "#" starts a comment.
+
+# desktop: compositor, shell, login
+hyprland uwsm noctalia quickshell greetd noctalia-greeter
+xdg-desktop-portal-hyprland xdg-desktop-portal-gtk gnome-keyring gcr-4
+# look: theme, icons, font
+adw-gtk-theme qt6ct kvantum breeze-icons ttf-jetbrains-mono-nerd
+# terminal
+kitty alacritty fish fastfetch btop fzf bat zoxide
+# rice tools and helpers
+jq python python-pillow python-gobject librsvg pacman-contrib
+grim slurp swappy hyprpicker wl-clipboard brightnessctl nwg-displays
+hypridle udiskie cava kernel-modules-hook cachy-update paru
+# apps the rice themes (drop any you don't use)
+dolphin ark gnome-text-editor gnome-calculator mpv
+firefox obsidian zed vesktop-bin spotify-launcher

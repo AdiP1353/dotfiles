@@ -1,19 +1,64 @@
 #!/usr/bin/env bash
-# Set up this rice from ~/dotfiles: links every file here into your home folder
-# (backing up anything already there as <name>.bak-rice), then runs
-# `rice install` (automatic re-apply units, theme check). Safe to run again.
-#   git clone https://github.com/AdiP1353/dotfiles ~/dotfiles && ~/dotfiles/install
+# Set up this rice from ~/dotfiles (made for CachyOS + Hyprland, works on Arch
+# with paru). Safe to run again.
+#
+#   git clone https://github.com/AdiP1353/dotfiles ~/dotfiles
+#   ~/dotfiles/install --packages     # install packages first (asks), then set up
+#   ~/dotfiles/install                # set up only
+#   ~/dotfiles/install --links-only   # just link the files (for testing)
+#
+# Setting up = link every file here into your home folder (anything already
+# there is kept as <name>.bak-rice), then `rice install`: the automatic
+# re-apply units and a full theme check. Afterwards, once, with sudo:
+#   sudo ~/.config/rice-greeter/install.sh     login and lock screen
+#   sudo ~/.config/rice/system/install.sh      pacman hook, Firefox new tab, greeter sync
+# then log in to Hyprland and pick a wallpaper (SUPER + W): every colour
+# comes from it.
 set -euo pipefail
 D="$(cd "$(dirname "$0")" && pwd)"
+packages=0; links_only=0
+for a in "$@"; do
+    case "$a" in
+        --packages) packages=1 ;;
+        --links-only) links_only=1 ;;
+        -h|--help) sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        *) echo "unknown option: $a" >&2; exit 2 ;;
+    esac
+done
+
+list() { sed 's/#.*//' "$D/packages/$1" | tr -s ' \t' '\n' | grep -v '^$' || true; }
+
+if [ "$packages" = 1 ]; then
+    echo "packages from the repositories:"; list repo.txt | tr '\n' ' '; echo; echo
+    echo "packages from the AUR:"; list aur.txt | tr '\n' ' '; echo; echo
+    read -r -p "install them? [y/N] " ok
+    if [ "${ok,,}" = y ]; then
+        # shellcheck disable=SC2046
+        sudo pacman -S --needed $(list repo.txt)
+        if command -v paru >/dev/null; then paru -S --needed $(list aur.txt)
+        else echo "paru isn't installed: install the AUR packages yourself: $(list aur.txt | tr '\n' ' ')"; fi
+    fi
+fi
+
 n=0
 while IFS= read -r -d '' line; do
-  mode=${line%% *}; path=${line#*$'\t'}
-  case "$path" in install|.gitignore|.github/*) [ "$path" = ".github/README.md" ] || continue ;; esac
-  dst="$HOME/$path"; mkdir -p "$(dirname "$dst")"
-  if [ "$mode" = 120000 ]; then [ -L "$dst" ] || cp -P "$D/$path" "$dst"; continue; fi
-  [ "$(readlink "$dst" 2>/dev/null)" = "$D/$path" ] && continue
-  [ -e "$dst" ] && mv "$dst" "$dst.bak-rice"
-  ln -s "$D/$path" "$dst"; n=$((n+1))
+    mode=${line%% *}; path=${line#*$'\t'}
+    case "$path" in install|.gitignore|packages/*) continue ;; esac
+    case "$path" in .github/*) [ "$path" = ".github/README.md" ] || continue ;; esac
+    dst="$HOME/$path"; mkdir -p "$(dirname "$dst")"
+    if [ "$mode" = 120000 ]; then [ -L "$dst" ] || cp -P "$D/$path" "$dst"; continue; fi
+    [ "$(readlink "$dst" 2>/dev/null)" = "$D/$path" ] && continue
+    [ -e "$dst" ] || [ -L "$dst" ] && mv "$dst" "$dst.bak-rice"
+    ln -s "$D/$path" "$dst"; n=$((n+1))
 done < <(git -C "$D" ls-files -s -z)
-echo "linked $n files from $D"
-"$HOME/.config/rice/bin/rice" install
+echo "linked $n files from $D into $HOME"
+[ "$links_only" = 1 ] && exit 0
+
+"$HOME/.config/rice/bin/rice" install || true
+cat <<EOF
+
+next, once:
+  sudo ~/.config/rice-greeter/install.sh
+  sudo ~/.config/rice/system/install.sh
+then log in to Hyprland and pick a wallpaper with SUPER + W.
+EOF

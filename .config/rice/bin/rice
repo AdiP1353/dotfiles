@@ -184,7 +184,7 @@ part_launcher() {
             if [ "$MODE" = apply ] && [ -f /usr/share/applications/vesktop.desktop ]; then
                 sed -e 's/^Name=Vesktop$/Name=Discord/' -e 's/^Icon=vesktop$/Icon=discord/' /usr/share/applications/vesktop.desktop > "$d" && fixed "Vesktop shows as Discord"
             else warn "Vesktop is not renamed to Discord"; fi; }
-        [ -f "$HOME/.local/share/icons/hicolor/256x256/apps/discord.png" ] && ok "Discord icon" || warn "Discord icon missing (~/.local/share/icons/hicolor/256x256/apps/discord.png)"
+        [ -f "$HOME/.local/share/icons/hicolor/256x256/apps/discord.png" ] && ok "Discord icon" || say "  note    no Discord icon (Discord's logo isn't shipped: put one at ~/.local/share/icons/hicolor/256x256/apps/discord.png)"
     fi
 }
 
@@ -215,6 +215,16 @@ part_desktop() {
     [ -f "$HOME/.local/share/sounds/rice/index.theme" ] && ok "sound theme" || {
         [ "$MODE" = apply ] && mkdir -p "$HOME/.local/share/sounds" && ln -sfn "$RICE/sounds/rice" "$HOME/.local/share/sounds/rice" && fixed "sound theme linked" || warn "sound theme not linked"; }
     gset org.gnome.desktop.sound theme-name rice
+    # per-user folders noctalia needs (not in the shared config: they hold your home path)
+    local k want cur
+    for k in "shell.screenshot.directory|$HOME/Pictures/Screenshots" "wallpaper.directory|$HOME/Wallpapers"; do
+        want=${k#*|}; k=${k%%|*}
+        cur=$(noctalia msg config-get "$k" 2>/dev/null | tr -d "'\"")
+        if [ "$cur" = "$want" ]; then ok "${k##*.}: ${want/#$HOME/\~}"
+        elif [ "$MODE" = apply ] && command -v noctalia >/dev/null; then
+            mkdir -p "$want"; noctalia msg config-set "$k" "'$want'" >/dev/null && fixed "${k##*.}: ${want/#$HOME/\~}"
+        else warn "noctalia's $k is not $want"; fi
+    done
     grep -q 'FileChooser=gtk' "$HOME/.config/xdg-desktop-portal/hyprland-portals.conf" 2>/dev/null && ok "one GTK file picker" || warn "file picker portal is not set to gtk"
     [ -x "$HOME/.local/bin/rice-slurp" ] && ok "screenshot selection colours" || link_to "$HOME/.local/bin/rice-slurp" "$RICE/bin/rice-slurp"
 }

@@ -1,4 +1,5 @@
-// Let aprakash sync noctalia's wallpaper and colors to the login greeter
+// Installed by `sudo ~/.config/rice/system/install.sh`, which fills in @USER@.
+// Let @USER@ sync noctalia's wallpaper and colors to the login greeter
 // without typing a password.
 //
 // Scope: only the greeter sync action (which runs
@@ -11,7 +12,7 @@
 
 polkit.addRule(function (action, subject) {
     if (action.id === "org.noctalia.greeter.sync-appearance" &&
-        subject.user === "aprakash" &&
+        subject.user === "@USER@" &&
         subject.local && subject.active) {
         return polkit.Result.YES;
     }

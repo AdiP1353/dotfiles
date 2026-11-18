@@ -61,7 +61,7 @@ popup_shadows = false
     pipe_command = "swash --stdin --name \"swash-$(date +'%Y-%m-%d_%H:%M:%S').png\""
     pipe_to_command = true
     save_to_file = true
-    directory = "/home/aprakash/Pictures/Screenshots"   # every screenshot is saved here
+    # directory: set per user by `rice apply desktop` (~/Pictures/Screenshots)
 
     [[shell.session.actions]]
     # the rice lock screen, not noctalia\'s (THEME.md §5)
@@ -194,13 +194,13 @@ transition_on_startup = false   # animate the first wallpaper at shell startup (
 
 # Directory browsed by the wallpaper picker panel. Leave empty to use the
 # standard XDG Pictures directory (from `XDG_PICTURES_DIR` or `user-dirs.dirs`).
-directory           = "/home/aprakash/Wallpapers"
+# directory: set per user by `rice apply desktop` (~/Wallpapers, where the picker saves)
 # Theme-aware directories (used when theme mode is Light/Dark; Auto falls back to directory)
 # Enable per-monitor directory overrides (default: false)
 per_monitor_directories = false
 
 [wallpaper.default]
-path = "/home/aprakash/Wallpapers/default.png"
+# path: none shipped (wallpapers are other people's art); the picker (SUPER + W) sets one
 
 [wallpaper.automation]
 enabled                      = true

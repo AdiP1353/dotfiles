@@ -53,3 +53,13 @@ CFG
     chmod 644 /usr/lib/firefox/rice.cfg
     echo "firefox new tab page installed: /usr/lib/firefox/rice.cfg"
 fi
+
+# Login screen sync: lets this user (only) copy the wallpaper and colours to
+# the login greeter without a password (noctalia's greeter-sync action).
+rule="$(getent passwd "$user" | cut -d: -f6)/.config/noctalia/polkit/49-noctalia-greeter-sync.rules"
+if [ -f "$rule" ]; then
+    install -d -m 755 /etc/polkit-1/rules.d
+    sed "s/@USER@/$user/g" "$rule" > /etc/polkit-1/rules.d/49-noctalia-greeter-sync.rules
+    chmod 644 /etc/polkit-1/rules.d/49-noctalia-greeter-sync.rules
+    echo "polkit rule installed for $user"
+fi

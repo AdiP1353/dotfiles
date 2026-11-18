@@ -1,4 +1,5 @@
-source /usr/share/cachyos-fish-config/cachyos-config.fish
+# CachyOS's fish defaults, when they're there (not on plain Arch)
+test -f /usr/share/cachyos-fish-config/cachyos-config.fish; and source /usr/share/cachyos-fish-config/cachyos-config.fish
 
 # Greeting: the boxed specs (~/.config/fastfetch/config.jsonc) with your image
 # (~/.config/fastfetch/logo.png) on the left: drawn with Kitty's image
@@ -20,10 +21,10 @@ function fish_greeting
 end
 
 if status is-interactive
-    atuin init fish | source
+    command -q atuin; and atuin init fish | source
 end
 
-zoxide init fish | source
+command -q zoxide; and zoxide init fish | source
 alias vim=nvim
 
 

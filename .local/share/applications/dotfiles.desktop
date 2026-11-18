@@ -2,7 +2,7 @@
 Type=Application
 Name=Dotfiles
 Comment=Open ~/dotfiles, where the whole rice lives
-Exec=dolphin /home/aprakash/dotfiles
+Exec=sh -c 'dolphin "$HOME/dotfiles"'
 Icon=folder-development
 Categories=Utility;
 Keywords=rice;config;dots;
