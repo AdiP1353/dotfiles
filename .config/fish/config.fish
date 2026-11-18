@@ -1,22 +1,15 @@
 source /usr/share/cachyos-fish-config/cachyos-config.fish
 
-# Greeting: the boxed specs (~/.config/fastfetch/config.jsonc) with your image
-# (~/.config/fastfetch/logo.png) on the left: drawn with Kitty's image
-# protocol in Kitty, as coloured text blocks (logo.ansi) in any other terminal, so it
-# shows everywhere instead of text art.
+# Greeting: the boxed specs (~/.config/fastfetch/config.jsonc) with your
+# picture on the left as ASCII art (logo.ansi), tinted from the wallpaper by
+# ~/.config/fastfetch/make-logo.py (re-run on every wallpaper change).
 function fish_greeting
-    set -l logo ~/.config/fastfetch/logo-tinted.png   # logo.png in the wallpaper colours (make-logo.py)
-    test -f $logo; or set logo ~/.config/fastfetch/logo.png
-    if not test -f $logo
-        fastfetch
-    else if test "$TERM" = xterm-kitty
-        fastfetch --logo-type kitty-direct --logo $logo \
-            --logo-width 36 --logo-height 11 --logo-padding-top 6 --logo-padding-right 3
+    set -l art ~/.config/fastfetch/logo.ansi
+    test -f $art; or python3 -I ~/.config/fastfetch/make-logo.py 40 >/dev/null 2>&1
+    if test -f $art
+        fastfetch --logo-type file-raw --logo $art --logo-padding-top 6 --logo-padding-right 3
     else
-        # logo.ansi: the picture as coloured blocks (make-logo.py), works anywhere
-        test -f ~/.config/fastfetch/logo.ansi; or python3 -I ~/.config/fastfetch/make-logo.py >/dev/null
-        fastfetch --logo-type file-raw --logo ~/.config/fastfetch/logo.ansi \
-            --logo-padding-top 6 --logo-padding-right 3
+        fastfetch
     end
 end
 
