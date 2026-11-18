@@ -46,8 +46,13 @@ CFG
     cat > /usr/lib/firefox/rice.cfg <<CFG
 // rice: new tabs show ~/.config/rice/firefox/newtab.html (first line must be a comment)
 try {
+  const url = "file://$home/.config/rice/firefox/newtab.html";
   const { AboutNewTab } = ChromeUtils.importESModule("resource:///modules/AboutNewTab.sys.mjs");
-  AboutNewTab.newTabURL = "file://$home/.config/rice/firefox/newtab.html";
+  AboutNewTab.newTabURL = url;
+  // count it as a blank page: the address bar stays empty and focused, ready to type
+  Services.obs.addObserver(win => {
+    try { if (win.gInitialPages && !win.gInitialPages.includes(url)) win.gInitialPages.push(url); } catch (e) {}
+  }, "browser-delayed-startup-finished");
 } catch (e) {}
 CFG
     chmod 644 /usr/lib/firefox/rice.cfg

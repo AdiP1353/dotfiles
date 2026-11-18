@@ -258,7 +258,8 @@ newtab_wallpaper() {
 }
 part_web() {
     say "firefox new tab / whatsapp"
-    if [ -f /usr/lib/firefox/rice.cfg ]; then ok "new tab page (autoconfig)"
+    if grep -q gInitialPages /usr/lib/firefox/rice.cfg 2>/dev/null; then ok "new tab page (autoconfig)"
+    elif [ -f /usr/lib/firefox/rice.cfg ]; then warn "new tab page is out of date (address bar not empty): sudo $RICE/system/install.sh"
     else warn "new tab page not installed: sudo $RICE/system/install.sh"; fi
     if newtab_wallpaper; then ok "new tab wallpaper"
     elif [ "$MODE" = apply ]; then
