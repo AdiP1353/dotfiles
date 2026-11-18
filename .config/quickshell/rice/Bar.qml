@@ -39,6 +39,7 @@ PanelWindow {
     exclusiveZone: implicitHeight
 
     readonly property var monitor: Hyprland.monitors.values.find(m => m.name === screen.name)
+    property bool trayOpen: false        // the tray icons, behind "apps"
 
     component Key: Text {
         color: Theme.textDim
@@ -76,6 +77,7 @@ PanelWindow {
             color: Theme.text
         }
     }
+    ToggleMenu { id: toggles; screen: bar.screen }   // right-click the clock
     // right-click menu for tray icons (TrayMenu.qml), one per screen
     TrayMenu { id: trayMenu; screen: bar.screen }
     IpcHandler {   // for testing: qs -c rice ipc call tray_<screen> menu <n>
@@ -160,12 +162,14 @@ PanelWindow {
                 id: mediaText
                 width: Math.min(implicitWidth, bar.width * 0.12)
                 elide: Text.ElideRight
-                text: media.player ? "\u266a " + ((media.player.trackArtist ? media.player.trackArtist + " - " : "")
-                                     + (media.player.trackTitle || media.player.identity)).toLowerCase() : ""
+                // the song only; hovering shows "artist - song"
+                text: !media.player ? "" : "\u266a " + ((mediaHit.containsMouse && media.player.trackArtist ? media.player.trackArtist + " - " : "")
+                                     + (media.player.trackTitle || media.player.identity)).toLowerCase()
                 color: Theme.textDim
                 font { family: Theme.font; pointSize: Theme.fontSize }
             }
             Hit {
+                id: mediaHit
                 // click: go to the app that's playing; right-click: play / pause
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
                 onClicked: mouse => {
@@ -212,10 +216,17 @@ PanelWindow {
             id: clockRow
             spacing: Theme.s3
             SystemClock { id: clock; precision: SystemClock.Minutes }
-            Val { text: Qt.formatTime(clock.date, "HH:mm") }
-            Key { text: Qt.formatDate(clock.date, "ddd d MMM").toLowerCase() }
+            Val { text: Qt.formatTime(clock.date, "HH:mm") }          // 24-hour
+            Key { visible: clockHit.containsMouse; text: Qt.formatDate(clock.date, "ddd d MMM").toLowerCase() }
         }
-        Hit { onClicked: bar.panel("calendar") }
+        Hit {   // click: calendar; hover: the date; right-click: dnd / awake
+            id: clockHit
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
+            onClicked: mouse => {
+                if (mouse.button === Qt.RightButton) toggles.show(bar.width / 2)
+                else bar.panel("calendar")
+            }
+        }
     }
 
     // ---- right: tray, net, vol, bat ----
@@ -223,9 +234,10 @@ PanelWindow {
         anchors { right: parent.right; rightMargin: Theme.s3; verticalCenter: parent.verticalCenter; verticalCenterOffset: -1 }
         spacing: Theme.s4
 
-        Row {
+        Row {   // the tray icons, shown only after clicking "apps"
             spacing: Theme.s2
             anchors.verticalCenter: parent.verticalCenter
+            visible: bar.trayOpen
             Repeater {
                 model: SystemTray.items
                 IconImage {
@@ -246,6 +258,18 @@ PanelWindow {
                 }
             }
         }
+        Item {  // "apps": the tray, collapsed; click to show / hide the icons
+            width: appsText.implicitWidth; height: appsText.implicitHeight
+            visible: SystemTray.items.values.length > 0
+            Text {
+                id: appsText
+                text: "apps"
+                color: bar.trayOpen ? Theme.text : Theme.textDim
+                font { family: Theme.font; pointSize: Theme.fontSize }
+            }
+            Hit { onClicked: bar.trayOpen = !bar.trayOpen }
+        }
+        Dot { visible: SystemTray.items.values.length > 0 }
 
         Item {  // usb: a mounted USB drive (udiskie mounts it); click opens it, right-click ejects
             id: usb
@@ -303,29 +327,21 @@ PanelWindow {
         }
         Dot { visible: upd.visible }
 
-        Item {  // dnd: do not disturb (noctalia holds notifications); dim when off
-            id: dnd
-            property bool on: false
-            width: dndRow.implicitWidth; height: dndRow.implicitHeight
-            Row { id: dndRow; Text { text: "dnd"; color: dnd.on ? Theme.text : Theme.textDim; opacity: dnd.on ? 1 : 0.55; font { family: Theme.font; pointSize: Theme.fontSize } } }
-            Hit { onClicked: { Quickshell.execDetached(["noctalia", "msg", "notification-dnd-toggle"]); dnd.on = !dnd.on; dndPoll.restart() } }
-            Process {
-                id: dndState
-                command: ["noctalia", "msg", "notification-dnd-status"]
-                stdout: StdioCollector { onStreamFinished: dnd.on = /on|true|enabled/i.test(text) }
-            }
-            Timer { id: dndPoll; interval: 5000; running: true; repeat: true; triggeredOnStart: true; onTriggered: dndState.running = true }
+        // dnd / awake: only while on (SUPER + SHIFT + D / A, or right-click the clock)
+        Item {
+            visible: RiceStatus.dnd
+            width: dndText.implicitWidth; height: dndText.implicitHeight
+            Text { id: dndText; text: "dnd"; color: Theme.text; font { family: Theme.font; pointSize: Theme.fontSize } }
+            Hit { onClicked: RiceStatus.toggleDnd() }
         }
-        Dot {}
-
-        Item {  // awake: keep the screen on (no dim / lock / sleep while on); dim when off
-            id: awake
-            property bool on: false
-            width: awakeRow.implicitWidth; height: awakeRow.implicitHeight
-            Row { id: awakeRow; Text { text: "awake"; color: awake.on ? Theme.text : Theme.textDim; opacity: awake.on ? 1 : 0.55; font { family: Theme.font; pointSize: Theme.fontSize } } }
-            Hit { onClicked: { awake.on = !awake.on; Quickshell.execDetached(["noctalia", "msg", awake.on ? "caffeine-enable" : "caffeine-disable"]) } }
+        Dot { visible: RiceStatus.dnd }
+        Item {
+            visible: RiceStatus.awake
+            width: awakeText.implicitWidth; height: awakeText.implicitHeight
+            Text { id: awakeText; text: "awake"; color: Theme.text; font { family: Theme.font; pointSize: Theme.fontSize } }
+            Hit { onClicked: RiceStatus.toggleAwake() }
         }
-        Dot {}
+        Dot { visible: RiceStatus.awake }
 
         Item {  // net
             id: netItem

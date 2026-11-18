@@ -57,6 +57,13 @@ ShellRoot {
         function state(): string { return (display.open ? "open " : "closed ") + display.current + " sel:" + display.selected + " ext:" + display.external }
     }
 
+    IpcHandler {   // the bar's toggles (Status.qml): SUPER + SHIFT + D / A
+        target: "status"
+        function toggleDnd(): void { RiceStatus.toggleDnd() }
+        function toggleAwake(): void { RiceStatus.toggleAwake() }
+        function state(): string { return "dnd " + RiceStatus.dnd + ", awake " + RiceStatus.awake }
+    }
+
     IpcHandler {
         target: "windowmenu"
         function toggle(): void { windowMenu.open ? windowMenu.close() : windowMenu.show(-1) }   // SUPER + M

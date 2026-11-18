@@ -222,6 +222,9 @@ hl.bind(mainMod .. " + V", hl.dsp.exec_cmd(noctCall .. "panel-toggle clipboard")
 
 -- Notifications
 hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(noctCall .. "panel-toggle control-center notifications"))
+-- Do Not Disturb / stay awake (the bar shows "dnd" / "awake" while on)
+hl.bind(mainMod .. " + SHIFT + D", hl.dsp.exec_cmd("qs -c rice ipc call status toggleDnd"))
+hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd("qs -c rice ipc call status toggleAwake"))
 
 -------------------------------
 ---- WORKSPACES & MONITORS ----
