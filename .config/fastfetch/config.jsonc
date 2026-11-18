@@ -2,7 +2,8 @@
 // Three boxes, like a tree: "hardware", "software" (system, then desktop) and
 // "uptime / age". Every row is a branch (├ / └), a coloured icon and the value.
 // Colours are the terminal's own 16 (the rice's fixed minimal palette):
-// box lines dim grey, titles light grey, icons yellow / blue / magenta.
+// toned down: box lines and desktop icons dim grey, titles and headers light
+// grey, hardware and software icons the palette's muted blue.
 // The image on the left is ~/.config/fastfetch/logo.png, shown by the fish
 // greeting: Kitty's image protocol in Kitty, logo.ansi (the same picture as
 // coloured text blocks, from make-logo.py) in every other terminal.
@@ -13,40 +14,40 @@
   },
   "display": {
     "separator": "",
-    "color": { "keys": "33", "separator": "90", "output": "37" },
-    "percent": { "type": 1, "color": { "green": "32", "yellow": "33", "red": "31" } }
+    "color": { "keys": "34", "separator": "90", "output": "37" },
+    "percent": { "type": 1, "color": { "green": "37", "yellow": "33", "red": "31" } }
   },
   "modules": [
     { "type": "custom", "format": "{#90}┌──────────────────── {#37}hardware{#90} ────────────────────┐" },
-    { "type": "cpu",    "key": "│ ├ 󰻠 ", "keyColor": "33", "format": "{name} ({cores-logical}) @ {freq-max}" },
-    { "type": "gpu",    "key": "│ ├ 󰢮 ", "keyColor": "33", "format": "{name} [{type}]" },
-    { "type": "memory", "key": "│ ├ 󰍛 ", "keyColor": "33", "format": "{used} / {total} ({percentage})" },
-    { "type": "disk",   "key": "│ └ 󰋊 ", "keyColor": "33", "folders": "/:/boot", "format": "{size-used} / {size-total} ({size-percentage}) - {filesystem}" },
+    { "type": "cpu",    "key": "│ ├ 󰻠 ", "keyColor": "34", "format": "{name} ({cores-logical}) @ {freq-max}" },
+    { "type": "gpu",    "key": "│ ├ 󰢮 ", "keyColor": "34", "format": "{name} [{type}]" },
+    { "type": "memory", "key": "│ ├ 󰍛 ", "keyColor": "34", "format": "{used} / {total} ({percentage})" },
+    { "type": "disk",   "key": "│ └ 󰋊 ", "keyColor": "34", "folders": "/:/boot", "format": "{size-used} / {size-total} ({size-percentage}) - {filesystem}" },
     { "type": "custom", "format": "{#90}└────────────────────────────────────────────────┘" },
     "break",
 
     { "type": "custom", "format": "{#90}┌──────────────────── {#37}software{#90} ────────────────────┐" },
-    { "type": "os",           "key": "{#36}os: ", "keyColor": "36", "format": "{name} {arch}" },
+    { "type": "os",           "key": "{#37}os: ", "keyColor": "37", "format": "{name} {arch}" },
     { "type": "kernel",       "key": "│ ├ 󰌽 ", "keyColor": "34", "format": "Linux {release}" },
     { "type": "packages",     "key": "│ ├ 󰏖 ", "keyColor": "34" },
     { "type": "terminal",     "key": "│ ├ 󰆍 ", "keyColor": "34", "format": "{pretty-name}" },
     { "type": "terminalfont", "key": "│ ├ 󰛖 ", "keyColor": "34" },
     { "type": "shell",        "key": "│ └ 󰈺 ", "keyColor": "34", "format": "{pretty-name} {version}" },
     "break",
-    { "type": "wm",           "key": "{#36}wm: ", "keyColor": "36", "format": "{pretty-name} {version} ({protocol-name})" },
-    { "type": "lm",           "key": "│ ├ 󰍂 ", "keyColor": "35", "format": "{service}" },
-    { "type": "theme",        "key": "│ ├ 󰉼 ", "keyColor": "35", "format": "{theme2}, {theme1}" },
-    { "type": "icons",        "key": "│ ├ 󰀻 ", "keyColor": "35", "format": "{icons2}" },
-    { "type": "cursor",       "key": "│ ├ 󰆿 ", "keyColor": "35", "format": "{theme}" },
-    { "type": "gpu",          "key": "│ ├ 󰾲 ", "keyColor": "35", "format": "{driver}" },
-    { "type": "font",         "key": "│ └ 󰛖 ", "keyColor": "35", "format": "{font2}" },
+    { "type": "wm",           "key": "{#37}wm: ", "keyColor": "37", "format": "{pretty-name} {version} ({protocol-name})" },
+    { "type": "lm",           "key": "│ ├ 󰍂 ", "keyColor": "90", "format": "{service}" },
+    { "type": "theme",        "key": "│ ├ 󰉼 ", "keyColor": "90", "format": "{theme2}, {theme1}" },
+    { "type": "icons",        "key": "│ ├ 󰀻 ", "keyColor": "90", "format": "{icons2}" },
+    { "type": "cursor",       "key": "│ ├ 󰆿 ", "keyColor": "90", "format": "{theme}" },
+    { "type": "gpu",          "key": "│ ├ 󰾲 ", "keyColor": "90", "format": "{driver}" },
+    { "type": "font",         "key": "│ └ 󰛖 ", "keyColor": "90", "format": "{font2}" },
     { "type": "custom", "format": "{#90}└────────────────────────────────────────────────┘" },
     "break",
 
     { "type": "custom", "format": "{#90}┌───────────────── {#37}uptime / age{#90} ─────────────────┐" },
-    { "type": "command", "key": "  os age  ", "keyColor": "35",
+    { "type": "command", "key": "  os age  ", "keyColor": "90",
       "text": "b=$(stat -c %W /); [ \"$b\" -gt 0 ] && echo \"$(( ($(date +%s) - b) / 86400 )) days\" || echo unknown" },
-    { "type": "uptime",  "key": "  uptime  ", "keyColor": "35" },
+    { "type": "uptime",  "key": "  uptime  ", "keyColor": "90" },
     { "type": "custom", "format": "{#90}└────────────────────────────────────────────────┘" }
   ]
 }
