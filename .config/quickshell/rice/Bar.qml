@@ -88,6 +88,8 @@ PanelWindow {
         }
         function list(): string { return SystemTray.items.values.map(i => i.id).join(", ") }
         function close(): void { trayMenu.close() }
+        // for testing the update colours: set the shown count (the hourly check resets it)
+        function testUpdates(n: int): void { upd.count = n }
         // dry run for testing: which window clicking "now playing" would go to
         function musicTarget(): string {
             const p = Mpris.players.values.find(p => p.isPlaying)
@@ -314,7 +316,13 @@ PanelWindow {
             property int count: 0
             visible: count > 0
             width: updRow.implicitWidth; height: updRow.implicitHeight
-            Row { id: updRow; Label { text: "upd" } Val { text: String(upd.count) } }
+            // 50 or more waiting: the whole item turns the palette's vivid warning colour
+            readonly property bool many: count >= 50
+            Row {
+                id: updRow
+                Label { text: "upd"; color: upd.many ? Theme.error : Theme.textDim }
+                Val { text: String(upd.count); color: upd.many ? Theme.error : Theme.text }
+            }
             Hit {   // click: update in a terminal (it says when a reboot is needed)
                 onClicked: { Quickshell.execDetached(["kitty", "--class", "rice-update", "-e", Quickshell.env("HOME") + "/.config/rice/bin/rice-update"]); upd.count = 0 }
             }
