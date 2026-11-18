@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Dotfiles
+Comment=Open ~/dotfiles, where the whole rice lives
+Exec=dolphin /home/aprakash/dotfiles
+Icon=folder-development
+Categories=Utility;
+Keywords=rice;config;dots;

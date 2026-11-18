@@ -285,7 +285,29 @@ part_session() {
     else warn "noctalia locks with its own screen before sleep (rice apply session)"; fi
 }
 
-ALL_PARTS=(colors gtk qt cursor desktop firefox web obsidian spotify discord editor terminal video session launcher greeter)
+# ---------------------------------------------------------------- dotfiles links
+# Every file in ~/dotfiles is linked into your home folder. Some apps save by
+# replacing the file (that breaks the link): their new version is copied into
+# ~/dotfiles, then linked again, so nothing they changed is lost.
+part_links() {
+    say "dotfiles (~/dotfiles, linked into ~)"
+    local D="$HOME/dotfiles" n=0 line mode path dst
+    [ -d "$D/.git" ] || { warn "~/dotfiles is missing (git clone https://github.com/AdiP1353/dotfiles ~/dotfiles)"; return; }
+    while IFS= read -r -d '' line; do
+        mode=${line%% *}; path=${line#*$'\t'}
+        case "$path" in install|.gitignore) continue ;; esac
+        [ "$mode" = 120000 ] && continue
+        dst="$HOME/$path"
+        [ "$(readlink "$dst" 2>/dev/null)" = "$D/$path" ] && { n=$((n+1)); continue; }
+        if [ "$MODE" = apply ]; then
+            if [ -f "$dst" ] && [ ! -L "$dst" ]; then cmp -s "$dst" "$D/$path" || cp "$dst" "$D/$path"; fi
+            mkdir -p "$(dirname "$dst")"; ln -sfn "$D/$path" "$dst" && fixed "re-linked ${path} (kept the app's changes)"
+        else warn "${path} is not linked into ~/dotfiles (rice apply links)"; fi
+    done < <(git -C "$D" ls-files -s -z)
+    [ "$n" -gt 0 ] && ok "$n files linked"
+}
+
+ALL_PARTS=(links colors gtk qt cursor desktop firefox web obsidian spotify discord editor terminal video session launcher greeter)
 run_parts() {
     local parts=("$@"); [ ${#parts[@]} -gt 0 ] || parts=("${ALL_PARTS[@]}")
     # Spotify first: noctalia's template hook also runs Spicetify, and two

@@ -1,4 +1,6 @@
-# git for the dotfiles repo (bare repo in ~/.dotfiles, work tree = $HOME)
-function dots --wraps git --description 'git for the dotfiles repo'
-    git --git-dir=$HOME/.dotfiles --work-tree=$HOME $argv
+# git for the dotfiles: everything lives in ~/dotfiles (a normal git repo);
+# the configs in your home folder are links into it. `dots push`, `dots status`...
+# work from anywhere.
+function dots --wraps git --description 'git for ~/dotfiles'
+    git -C $HOME/dotfiles $argv
 end

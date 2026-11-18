@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Set up this rice from ~/dotfiles: links every file here into your home folder
+# (backing up anything already there as <name>.bak-rice), then runs
+# `rice install` (automatic re-apply units, theme check). Safe to run again.
+#   git clone https://github.com/AdiP1353/dotfiles ~/dotfiles && ~/dotfiles/install
+set -euo pipefail
+D="$(cd "$(dirname "$0")" && pwd)"
+n=0
+while IFS= read -r -d '' line; do
+  mode=${line%% *}; path=${line#*$'\t'}
+  case "$path" in install|.gitignore|.github/*) [ "$path" = ".github/README.md" ] || continue ;; esac
+  dst="$HOME/$path"; mkdir -p "$(dirname "$dst")"
+  if [ "$mode" = 120000 ]; then [ -L "$dst" ] || cp -P "$D/$path" "$dst"; continue; fi
+  [ "$(readlink "$dst" 2>/dev/null)" = "$D/$path" ] && continue
+  [ -e "$dst" ] && mv "$dst" "$dst.bak-rice"
+  ln -s "$D/$path" "$dst"; n=$((n+1))
+done < <(git -C "$D" ls-files -s -z)
+echo "linked $n files from $D"
+"$HOME/.config/rice/bin/rice" install

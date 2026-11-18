@@ -37,8 +37,11 @@ Let me know if you have any questions or suggestions for this rice. Enjoy!
 
 ### Usage
 
-Copy what you want into `~/.config`. Back up your own configs first.
+Everything is in this one folder. Clone it to `~/dotfiles` and run the install script, it links every config into place (backing up anything already there) and sets up the rest:
 
-Then run `~/.config/rice/bin/rice install`. It sets everything up and keeps the theme in place after updates (`rice check` shows what's themed).
+```sh
+git clone https://github.com/AdiP1353/dotfiles ~/dotfiles
+~/dotfiles/install
+```
 
 For the login screen run `sudo ~/.config/rice-greeter/install.sh`, and `sudo ~/.config/rice/system/install.sh` to re-apply the theme after pacman updates.
