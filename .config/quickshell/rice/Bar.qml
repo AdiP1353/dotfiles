@@ -134,6 +134,33 @@ PanelWindow {
             }
             Hit { onClicked: if (media.player && media.player.canTogglePlaying) media.player.togglePlaying() }
         }
+
+        // a tiny visualiser after the song: 12 bars, 2px wide, 2px apart, in the
+        // dim text colour; fades in and out with playback (150ms)
+        Row {
+            id: barViz
+            readonly property var levels: Cava.grouped(12)
+            anchors.verticalCenter: parent.verticalCenter
+            height: 14
+            spacing: 2
+            visible: opacity > 0
+            opacity: Cava.playing ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.easeOut } }
+            Repeater {
+                model: 12
+                Item {
+                    required property int index
+                    width: 2; height: barViz.height
+                    Rectangle {
+                        anchors.bottom: parent.bottom
+                        width: 2
+                        // reduced motion / no data: a still 2px line
+                        height: Math.max(2, Math.round((barViz.levels[parent.index] || 0) / 100 * parent.height))
+                        color: Theme.textDim
+                    }
+                }
+            }
+        }
     }
 
     // ---- centre: time and date ----

@@ -19,6 +19,10 @@ ShellRoot {
         model: Quickshell.screens
         Bar {}
     }
+    Variants {   // audio visualiser on the desktop, while music plays
+        model: Quickshell.screens
+        DesktopViz {}
+    }
 
     Launcher { id: launcher }
     Switcher { id: switcher }
