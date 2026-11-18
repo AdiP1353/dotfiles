@@ -39,7 +39,8 @@ part_colors() {
         for f in "$HOME/.local/state/rice/colors.json" "$RICE/firefox/rice-colors.css" \
                  "$HOME/.local/share/gtksourceview-5/styles/rice.xml" \
                  "$HOME/.config/spicetify/Themes/Rice/color.ini" \
-                 "$HOME/.config/vesktop/themes/noctalia.theme.css"; do
+                 "$HOME/.config/vesktop/themes/noctalia.theme.css" \
+                 "$HOME/.local/state/rice/viz.json"; do
             [ -s "$f" ] && ok "${f/#$HOME/\~}" || warn "${f/#$HOME/\~} missing (rice apply colors)"
         done
     fi

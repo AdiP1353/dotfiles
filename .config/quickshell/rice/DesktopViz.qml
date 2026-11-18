@@ -1,14 +1,16 @@
 // Desktop visualiser, minimal style (THEME.md §3): while music plays, a wide
 // low row of bars along the bottom of the wallpaper, behind every window
 // (you see it on empty workspaces and between windows). 192 square bars
-// across the full width of the bottom edge, 2px apart, in the dim text
-// colour, growing up from a 2px baseline.
+// across the full width of the bottom edge, 2px apart, growing up from a 2px
+// baseline. Colour: light grey or near-black, whichever stands out more on the
+// wallpaper underneath (rice-viz-colour).
 // Clicks pass straight through; it fades in and out with playback (150ms).
 // Reduced motion: cava doesn't run, so it stays a still line.
 
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Io
 
 PanelWindow {
     id: win
@@ -24,6 +26,21 @@ PanelWindow {
     WlrLayershell.namespace: "rice-visualiser"
     mask: Region {}                                // never takes a click
     visible: viz.opacity > 0
+
+    // the bar colour with the best contrast against this screen's wallpaper
+    // (light grey on dark wallpapers, the palette's near-black on light ones),
+    // picked by ~/.config/rice/bin/rice-viz-colour after every wallpaper change
+    FileView {
+        id: vizFile
+        path: Quickshell.env("HOME") + "/.local/state/rice/viz.json"
+        watchChanges: true
+        onFileChanged: reload()
+        printErrors: false
+    }
+    readonly property color barColour: {
+        try { const m = JSON.parse(vizFile.text()); if (m[screen.name]) return m[screen.name] } catch (e) {}
+        return Theme.textDim
+    }
 
     Row {
         id: viz
@@ -45,7 +62,7 @@ PanelWindow {
                     anchors.bottom: parent.bottom
                     width: parent.width
                     height: Math.max(2, Math.round((Cava.values[parent.index] || 0) / 100 * parent.height))
-                    color: Theme.textDim
+                    color: win.barColour
                 }
             }
         }

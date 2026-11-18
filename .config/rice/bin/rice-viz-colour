@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+"""Pick the desktop visualiser's colour for each screen (THEME.md §5).
+
+The visualiser sits on the bottom edge of the wallpaper. For every monitor
+this measures the average colour of the wallpaper's bottom strip (as it is
+shown: scaled to cover the screen) and picks whichever palette colour has the
+higher contrast against it:
+  on_surface_variant  the dim light grey (dark wallpapers)
+  surface             the palette's near-black (light wallpapers)
+Writes ~/.local/state/rice/viz.json: {"<monitor>": "#rrggbb", ...}.
+Run by noctalia after every wallpaper change (rice_colors post_hook) and by
+`rice apply colors`.
+"""
+import json, os, subprocess, sys
+from PIL import Image
+
+HOME = os.path.expanduser("~")
+STATE = os.path.join(HOME, ".local/state/rice")
+STRIP = 72 / 1080          # the visualiser's height on a 1080p screen
+
+def run(*cmd):
+    try: return subprocess.run(cmd, capture_output=True, text=True, timeout=5).stdout.strip()
+    except Exception: return ""
+
+def lum(rgb):
+    def ch(c):
+        c /= 255
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = rgb
+    return 0.2126 * ch(r) + 0.7152 * ch(g) + 0.0722 * ch(b)
+
+def contrast(a, b):
+    la, lb = sorted((lum(a), lum(b)), reverse=True)
+    return (la + 0.05) / (lb + 0.05)
+
+def hex2rgb(h): h = h.lstrip("#"); return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+def bottom_colour(path, w, h):
+    im = Image.open(path).convert("RGB")
+    # "cover" scaling, centred, like the wallpaper on screen
+    scale = max(w / im.width, h / im.height)
+    sw, sh = im.width * scale, im.height * scale
+    top = (sh - h) / 2 + h * (1 - STRIP)          # screen's bottom strip, in scaled pixels
+    box = (int((sw - w) / 2 / scale), int(top / scale), int(((sw - w) / 2 + w) / scale), int((top + h * STRIP) / scale))
+    return im.crop(box).resize((1, 1), Image.Resampling.BOX).getpixel((0, 0))   # the average colour
+
+def main():
+    pal = json.load(open(os.path.join(STATE, "colors.json")))
+    light, dark = pal["on_surface_variant"], pal["surface"]
+    out = {}
+    try: mons = json.loads(run("hyprctl", "monitors", "-j") or "[]")
+    except json.JSONDecodeError: mons = []
+    for m in mons:
+        path = run("noctalia", "msg", "wallpaper-get", m["name"]).strip("'\"") or run("noctalia", "msg", "wallpaper-get").strip("'\"")
+        if not os.path.isfile(path): continue
+        bg = bottom_colour(path, m["width"], m["height"])
+        out[m["name"]] = light if contrast(hex2rgb(light), bg) >= contrast(hex2rgb(dark), bg) else dark
+    os.makedirs(STATE, exist_ok=True)
+    tmp = os.path.join(STATE, "viz.json.tmp")
+    json.dump(out, open(tmp, "w"))
+    os.replace(tmp, os.path.join(STATE, "viz.json"))
+    print(json.dumps(out))
+
+if __name__ == "__main__":
+    sys.exit(main())
