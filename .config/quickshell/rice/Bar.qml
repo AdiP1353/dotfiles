@@ -328,7 +328,7 @@ PanelWindow {
             }
             Process {
                 id: updCheck
-                command: ["sh", "-c", "{ checkupdates 2>/dev/null; command -v yay >/dev/null && yay -Qua 2>/dev/null; } | grep -c ."]
+                command: ["sh", "-c", "{ checkupdates 2>/dev/null; if command -v paru >/dev/null; then paru -Qua 2>/dev/null; elif command -v yay >/dev/null; then yay -Qua 2>/dev/null; fi; } | grep -c ."]
                 stdout: StdioCollector { onStreamFinished: upd.count = parseInt(text) || 0 }
             }
             Timer { interval: 60 * 60 * 1000; running: true; repeat: true; triggeredOnStart: true; onTriggered: updCheck.running = true }

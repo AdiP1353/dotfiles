@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Name=Arch-Update Tray
+# Off: the rice bar's "upd" is the update notice (THEME.md §5).
+Hidden=true
