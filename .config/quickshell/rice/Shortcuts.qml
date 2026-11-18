@@ -85,7 +85,7 @@ PanelWindow {
             ["super p", "display mode", "monitor screen projector duplicate extend"],
             ["super shift p", "colour picker", "color pick eyedropper hex"],
             ["print", "screenshot a region (edit)", "screen capture snip swappy"],
-            ["super print", "screenshot (full screen / region to clipboard)", "screen capture copy"],
+            ["super print", "screenshot the full screen", "screen capture whole display"],
             ["super + / -", "zoom", "magnify bigger smaller"],
             ["volume keys", "volume up / down / mute", "audio sound speaker mic"],
             ["media keys", "play / pause / next / previous", "music spotify song"],
