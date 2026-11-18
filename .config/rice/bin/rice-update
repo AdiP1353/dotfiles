@@ -1,0 +1,16 @@
+#!/bin/sh
+# Runs from the bar's "upd N" (in a terminal): updates the system and, if the
+# kernel changed, says a reboot is needed to finish (drivers for the running
+# kernel are kept until then by kernel-modules-hook).
+set -u
+echo "updating the system..."
+sudo pacman -Syu
+command -v yay >/dev/null && { echo; echo "updating AUR packages..."; yay -Sua; }
+running=$(uname -r)
+installed=$(pacman -Q linux-cachyos 2>/dev/null | awk '{print $2}' | sed 's/-/-/')
+echo
+case "$running" in
+    "${installed%%-*}"*) echo "done." ;;
+    *) echo "done. the kernel was updated ($running -> $installed): reboot to finish." ;;
+esac
+printf "press enter to close "; read -r _

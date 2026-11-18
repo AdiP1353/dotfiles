@@ -272,7 +272,15 @@ part_cursor() {
     grep -q 'XCURSOR_THEME="phinger-cursors-light"' "$HOME/.config/uwsm/env" && ok "session cursor (uwsm env)" || warn "uwsm env cursor is not phinger-cursors-light"
 }
 
-ALL_PARTS=(colors gtk qt cursor desktop firefox web obsidian spotify discord editor terminal video launcher greeter)
+# ---------------------------------------------------------------- idle, usb, updates
+part_session() {
+    say "idle / usb / updates"
+    command -v hypridle >/dev/null && { pgrep -x hypridle >/dev/null && ok "hypridle running" || { [ "$MODE" = apply ] && (hypridle >/dev/null 2>&1 &) && fixed "hypridle started" || warn "hypridle is not running"; }; } || warn "hypridle is not installed (sudo pacman -S hypridle)"
+    command -v udiskie >/dev/null && { pgrep -f "udiskie" >/dev/null && ok "udiskie running" || { [ "$MODE" = apply ] && (udiskie >/dev/null 2>&1 &) && fixed "udiskie started" || warn "udiskie is not running"; }; } || warn "udiskie is not installed (sudo pacman -S udiskie)"
+    command -v checkupdates >/dev/null && ok "update check (checkupdates)" || warn "checkupdates missing (pacman-contrib)"
+}
+
+ALL_PARTS=(colors gtk qt cursor desktop firefox web obsidian spotify discord editor terminal video session launcher greeter)
 run_parts() {
     local parts=("$@"); [ ${#parts[@]} -gt 0 ] || parts=("${ALL_PARTS[@]}")
     # Spotify first: noctalia's template hook also runs Spicetify, and two

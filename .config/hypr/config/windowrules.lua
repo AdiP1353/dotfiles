@@ -123,3 +123,27 @@ hl.layer_rule({
   blur = true,
   blur_popups = true,
 })
+
+-- Apps open in their own places (one app per workspace, matching SUPER + 1-5).
+-- Opening one takes you there; SUPER + number still focuses it wherever it is.
+local pip = "negative:^([Pp]icture[-\\s]?[Ii]n[-\\s]?[Pp]icture)(.*)$"
+hl.window_rule({ match = { class = "^(firefox)$", title = pip },        workspace = "1" })
+hl.window_rule({ match = { class = "^(Spotify|spotify)$" },             workspace = "2" })
+hl.window_rule({ match = { class = "^(com\\.anthropic\\.Claude)$" },    workspace = "3" })
+hl.window_rule({ match = { class = "^(md\\.obsidian\\.Obsidian|obsidian)$" }, workspace = "4" })
+hl.window_rule({ match = { class = "^(dev\\.zed\\.Zed)$" },             workspace = "5" })
+hl.window_rule({ match = { class = "^(vesktop|whatsapp)$" },            workspace = "6" })
+
+-- Drop-down terminal (Copilot key, binds.lua): Kitty in its own hidden
+-- workspace, floating across the top of the screen under the bar, 45% high.
+-- Shown and hidden with the special-workspace slide (animations.lua).
+hl.window_rule({
+    match     = { class = "^(rice-dropdown)$" },
+    workspace = "special:dropdown",
+    float     = true,
+    size      = { "monitor_w - 8", "monitor_h * 0.45" },
+    move      = { 4, 34 },
+})
+
+-- Fullscreen windows (games, videos) keep the screen awake (hypridle).
+hl.window_rule({ match = { class = ".*" }, idle_inhibit = "fullscreen" })

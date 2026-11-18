@@ -50,6 +50,16 @@ end
 
 -- SUPER + SHIFT + S: send the window to the scratchpad, or, if it is already
 -- in a hidden workspace (scratchpad or background), bring it back out.
+-- Drop-down terminal on the Copilot key: open it the first time, then show /
+-- hide its special workspace (it slides down from the top, under the bar).
+local function toggleDropdown()
+    if not findWindow("rice-dropdown") then
+        hl.exec_cmd("kitty --class rice-dropdown")
+    else
+        hl.dispatch(hl.dsp.workspace.toggle_special("dropdown"))
+    end
+end
+
 local function toggleScratchpad()
     local w = hl.get_active_window()
     if not w then return end
@@ -98,6 +108,8 @@ hl.bind("ALT + SHIFT + Tab",   hl.dsp.exec_cmd("qs -c rice ipc call switcher pre
 -- Shortcuts window (~/.config/quickshell/rice/Shortcuts.qml)
 hl.bind(mainMod .. " + H",     hl.dsp.exec_cmd("qs -c rice ipc call shortcuts toggle"))
 hl.bind(mainMod .. " + M",     hl.dsp.exec_cmd("qs -c rice ipc call windowmenu toggle"))
+-- Copilot key (it sends SUPER + SHIFT + F23): drop-down terminal
+hl.bind("SUPER + SHIFT + F23", toggleDropdown)
 hl.bind(mainMod .. " + Tab",   hl.dsp.exec_cmd(noctCall .. "window-switcher"))
 
 -- Move active window around workspaces & monitors

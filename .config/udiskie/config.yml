@@ -1,0 +1,12 @@
+# USB drives (udiskie): mount when plugged in, a notification with
+# "open" and "eject" actions; the bar shows "usb <name>" while mounted.
+program_options:
+  automount: true
+  notify: true
+  tray: false
+  file_manager: dolphin
+  terminal: kitty
+notifications:
+  timeout: 6
+notification_actions:
+  device_mounted: [browse, detach]

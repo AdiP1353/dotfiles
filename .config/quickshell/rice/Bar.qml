@@ -3,7 +3,10 @@
 //   left    workspaces (current one bright with an accent underline),
 //           now playing (only while something plays: click to pause/play)
 //   centre  time and date
-//   right   tray icons, then  wifi eduroam · vol 35% · bat 100%
+//   right   tray icons, then  [usb nyx ·] [upd 3 ·] dnd · awake · wifi eduroam · vol 35% · bat 100%
+//           (usb only while a drive is mounted: click opens it, right-click ejects;
+//           upd only when updates wait: click to update; dnd / awake are toggles,
+//           dim when off)
 //           (dim lowercase label, bright value, dim dots between)
 // Every part is clickable and opens its own page (noctalia):
 //   workspace -> switch to it      (no window title: ALT + right-click a window or
@@ -205,6 +208,86 @@ PanelWindow {
                 }
             }
         }
+
+        Item {  // usb: a mounted USB drive (udiskie mounts it); click opens it, right-click ejects
+            id: usb
+            property var drive: null        // { name, mount }
+            visible: drive !== null
+            width: usbRow.implicitWidth; height: usbRow.implicitHeight
+            Row { id: usbRow; Label { text: "usb" } Val { text: usb.drive ? usb.drive.name : "" } }
+            Hit {
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                onClicked: mouse => {
+                    if (!usb.drive) return
+                    if (mouse.button === Qt.RightButton)   // eject: unmount and power the drive off
+                        Quickshell.execDetached(["udiskie-umount", "--detach", usb.drive.mount])
+                    else Quickshell.execDetached(["dolphin", usb.drive.mount])
+                }
+            }
+            Process {
+                id: usbScan
+                command: ["lsblk", "-J", "-o", "NAME,LABEL,MOUNTPOINT,HOTPLUG,TRAN,TYPE,SIZE"]
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        let found = null
+                        try {
+                            const walk = list => { for (const d of list || []) {
+                                if (!found && d.mountpoint && (d.hotplug || d.tran === "usb")) found = d
+                                walk(d.children) } }
+                            const devs = JSON.parse(text).blockdevices
+                            // children inherit "usb" from their disk
+                            for (const disk of devs) if (disk.tran === "usb" || disk.hotplug) for (const c of disk.children || []) c.tran = "usb"
+                            walk(devs)
+                        } catch (e) {}
+                        usb.drive = found ? { name: String(found.label || found.size || found.name).toLowerCase(), mount: found.mountpoint } : null
+                    }
+                }
+            }
+            Timer { interval: 3000; running: true; repeat: true; triggeredOnStart: true; onTriggered: usbScan.running = true }
+        }
+        Dot { visible: usb.visible }
+
+        Item {  // upd: waiting updates (pacman + AUR), only when there are some
+            id: upd
+            property int count: 0
+            visible: count > 0
+            width: updRow.implicitWidth; height: updRow.implicitHeight
+            Row { id: updRow; Label { text: "upd" } Val { text: String(upd.count) } }
+            Hit {   // click: update in a terminal (it says when a reboot is needed)
+                onClicked: { Quickshell.execDetached(["kitty", "--class", "rice-update", "-e", Quickshell.env("HOME") + "/.config/rice/bin/rice-update"]); upd.count = 0 }
+            }
+            Process {
+                id: updCheck
+                command: ["sh", "-c", "{ checkupdates 2>/dev/null; command -v yay >/dev/null && yay -Qua 2>/dev/null; } | grep -c ."]
+                stdout: StdioCollector { onStreamFinished: upd.count = parseInt(text) || 0 }
+            }
+            Timer { interval: 60 * 60 * 1000; running: true; repeat: true; triggeredOnStart: true; onTriggered: updCheck.running = true }
+        }
+        Dot { visible: upd.visible }
+
+        Item {  // dnd: do not disturb (noctalia holds notifications); dim when off
+            id: dnd
+            property bool on: false
+            width: dndRow.implicitWidth; height: dndRow.implicitHeight
+            Row { id: dndRow; Text { text: "dnd"; color: dnd.on ? Theme.text : Theme.textDim; opacity: dnd.on ? 1 : 0.55; font { family: Theme.font; pointSize: Theme.fontSize } } }
+            Hit { onClicked: { Quickshell.execDetached(["noctalia", "msg", "notification-dnd-toggle"]); dnd.on = !dnd.on; dndPoll.restart() } }
+            Process {
+                id: dndState
+                command: ["noctalia", "msg", "notification-dnd-status"]
+                stdout: StdioCollector { onStreamFinished: dnd.on = /on|true|enabled/i.test(text) }
+            }
+            Timer { id: dndPoll; interval: 5000; running: true; repeat: true; triggeredOnStart: true; onTriggered: dndState.running = true }
+        }
+        Dot {}
+
+        Item {  // awake: keep the screen on (no dim / lock / sleep while on); dim when off
+            id: awake
+            property bool on: false
+            width: awakeRow.implicitWidth; height: awakeRow.implicitHeight
+            Row { id: awakeRow; Text { text: "awake"; color: awake.on ? Theme.text : Theme.textDim; opacity: awake.on ? 1 : 0.55; font { family: Theme.font; pointSize: Theme.fontSize } } }
+            Hit { onClicked: { awake.on = !awake.on; Quickshell.execDetached(["noctalia", "msg", awake.on ? "caffeine-enable" : "caffeine-disable"]) } }
+        }
+        Dot {}
 
         Item {  // net
             id: netItem
