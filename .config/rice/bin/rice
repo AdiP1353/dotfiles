@@ -275,8 +275,8 @@ part_cursor() {
 # ---------------------------------------------------------------- idle, usb, updates
 part_session() {
     say "idle / usb / updates"
-    command -v hypridle >/dev/null && { pgrep -x hypridle >/dev/null && ok "hypridle running" || { [ "$MODE" = apply ] && (hypridle >/dev/null 2>&1 &) && fixed "hypridle started" || warn "hypridle is not running"; }; } || warn "hypridle is not installed (sudo pacman -S hypridle)"
-    command -v udiskie >/dev/null && { pgrep -f "udiskie" >/dev/null && ok "udiskie running" || { [ "$MODE" = apply ] && (udiskie >/dev/null 2>&1 &) && fixed "udiskie started" || warn "udiskie is not running"; }; } || warn "udiskie is not installed (sudo pacman -S udiskie)"
+    command -v hypridle >/dev/null && { pgrep -x hypridle >/dev/null && ok "hypridle running" || { [ "$MODE" = apply ] && (hyprctl dispatch "hl.dsp.exec_cmd(\"hypridle\")" >/dev/null) && fixed "hypridle started" || warn "hypridle is not running"; }; } || warn "hypridle is not installed (sudo pacman -S hypridle)"
+    command -v udiskie >/dev/null && { pgrep -x udiskie >/dev/null && ok "udiskie running" || { [ "$MODE" = apply ] && (hyprctl dispatch "hl.dsp.exec_cmd(\"udiskie\")" >/dev/null) && fixed "udiskie started" || warn "udiskie is not running"; }; } || warn "udiskie is not installed (sudo pacman -S udiskie)"
     command -v checkupdates >/dev/null && ok "update check (checkupdates)" || warn "checkupdates missing (pacman-contrib)"
 }
 
