@@ -29,25 +29,22 @@ im.save(os.path.expanduser("~/.config/fastfetch/logo-tinted.png"))
 rows_px = round(im.height / im.width * cols)
 rows_px += rows_px % 2
 im = im.resize((cols, rows_px), Image.Resampling.BOX)
-im = im  # (tinted above)
 px = im.load()
 
-# ASCII art: each character cell covers 1 x 2 pixels; shape from the alpha,
-# density from how dark the picture is there (dark body = dense), colour from
-# the tinted pixel. Transparent cells are spaces.
-RAMP = " .:-=+*#%@"
+def solid(p): return p[3] >= 128
 out = []
 for y in range(0, rows_px, 2):
     line = ""
     for x in range(cols):
         t, b = px[x, y], px[x, y + 1]
-        a_ = (t[3] + b[3]) / 2
-        if a_ < 100:
-            line += " "; continue
-        c = tuple((t[i] + b[i]) // 2 for i in range(3))
-        l = (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) / 255
-        ch = RAMP[max(1, min(len(RAMP) - 1, int((1 - l) * (len(RAMP) - 1) + 0.5)))]
-        line += f"\x1b[38;2;{c[0]};{c[1]};{c[2]}m{ch}"
-    out.append(line.rstrip() + "\x1b[0m")
+        if solid(t) and solid(b):
+            line += f"\x1b[38;2;{t[0]};{t[1]};{t[2]}m\x1b[48;2;{b[0]};{b[1]};{b[2]}m▀"
+        elif solid(t):
+            line += f"\x1b[49m\x1b[38;2;{t[0]};{t[1]};{t[2]}m▀"
+        elif solid(b):
+            line += f"\x1b[49m\x1b[38;2;{b[0]};{b[1]};{b[2]}m▄"
+        else:
+            line += "\x1b[0m "
+    out.append(line + "\x1b[0m")
 open(dst, "w").write("\n".join(out) + "\n")
-print(f"{dst}: {cols}x{rows_px // 2} ascii")
+print(f"{dst}: {cols}x{rows_px // 2}")
