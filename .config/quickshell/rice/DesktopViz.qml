@@ -4,12 +4,14 @@
 // across the full width of the bottom edge, 2px apart, growing up from a 2px
 // baseline. Colour: light grey or near-black, whichever stands out more on the
 // wallpaper underneath (rice-viz-colour).
-// Clicks pass straight through; it fades in and out with playback (150ms).
+// Clicks pass straight through; it fades in and out (150ms) with playback,
+// and hides while any window is open on the workspace.
 // Reduced motion: cava doesn't run, so it stays a still line.
 
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import Quickshell.Io
 
 PanelWindow {
@@ -26,6 +28,24 @@ PanelWindow {
     WlrLayershell.namespace: "rice-visualiser"
     mask: Region {}                                // never takes a click
     visible: viz.opacity > 0
+
+    // Hidden while you work: any window on this screen's workspace (or a shown
+    // special workspace, like the drop-down terminal) fades it out; an empty
+    // workspace brings it back.
+    readonly property var monitor: Hyprland.monitors.values.find(m => m.name === screen.name) || null
+    readonly property bool busy: {
+        if (!monitor) return false
+        const ws = monitor.activeWorkspace
+        const special = monitor.lastIpcObject && monitor.lastIpcObject.specialWorkspace
+        return (ws && ws.toplevels && ws.toplevels.values.length > 0) || !!(special && special.name)
+    }
+    Connections {   // keep the special-workspace state current
+        target: Hyprland
+        function onRawEvent(event) {
+            if (["activespecial", "openwindow", "closewindow", "movewindow", "workspace", "focusedmon"].includes(event.name))
+                Hyprland.refreshMonitors()
+        }
+    }
 
     // the bar colour with the best contrast against this screen's wallpaper
     // (light grey on dark wallpapers, the palette's near-black on light ones),
@@ -50,7 +70,7 @@ PanelWindow {
         anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
         height: 72
         spacing: 2
-        opacity: Cava.playing ? 1 : 0
+        opacity: Cava.playing && !win.busy ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.easeOut } }
 
         Repeater {
