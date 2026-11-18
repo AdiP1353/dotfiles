@@ -1,6 +1,7 @@
 // The top bar, always on (THEME.md §3, minimal style): 28px of plain
 // lowercase text on the surface, closed by the rice's 2px line.
-//   left    workspaces (current one bright with an accent underline),
+//   left    workspaces (current one bright with an accent underline), now playing
+//           (click: go to the app playing it; right-click: play / pause),
 //           now playing (only while something plays: click to pause/play)
 //   centre  time and date
 //   right   tray icons, then  [usb nyx ·] [upd 3 ·] dnd · awake · wifi eduroam · vol 35% · bat 100%
@@ -85,6 +86,35 @@ PanelWindow {
         }
         function list(): string { return SystemTray.items.values.map(i => i.id).join(", ") }
         function close(): void { trayMenu.close() }
+        // dry run for testing: which window clicking "now playing" would go to
+        function musicTarget(): string {
+            const p = Mpris.players.values.find(p => p.isPlaying)
+            if (!p) return "nothing playing"
+            Hyprland.refreshToplevels()
+            const entry = String(p.desktopEntry || p.identity || "").toLowerCase()
+            const w = Hyprland.toplevels.values.filter(t => { const c = String((t.lastIpcObject && t.lastIpcObject.class) || "").toLowerCase(); return c === entry || c.endsWith("." + entry) || c.split(".").pop() === entry })
+            return entry + " -> " + w.map(t => (t.lastIpcObject.class + " on " + t.lastIpcObject.workspace.name)).join(", ")
+        }
+    }
+    // The window of the app behind a media player: its class matches the
+    // player's desktop entry (spotify, firefox...); with several windows, the one
+    // whose title mentions the song. A window hidden in a special workspace
+    // (Spotify in the background) is brought out onto this workspace first.
+    function goToPlayer(player) {
+        Hyprland.refreshToplevels()
+        const entry = String(player.desktopEntry || player.identity || "").toLowerCase()
+        const song = String(player.trackTitle || "").toLowerCase()
+        const wins = Hyprland.toplevels.values.filter(t => {
+            const c = String((t.lastIpcObject && t.lastIpcObject.class) || "").toLowerCase()
+            return entry && (c === entry || c.endsWith("." + entry) || c.split(".").pop() === entry)
+        })
+        const w = wins.find(t => song && String(t.title || "").toLowerCase().includes(song)) || wins[0]
+        if (!w) { if (player.canRaise) player.raise(); return }
+        const addr = String(w.address).startsWith("0x") ? w.address : "0x" + w.address
+        const ws = w.lastIpcObject && w.lastIpcObject.workspace
+        if (ws && String(ws.name).startsWith("special:"))
+            Hyprland.dispatch('hl.dsp.window.move({ workspace = "' + Hyprland.focusedWorkspace.name + '", window = "address:' + addr + '" })')
+        Hyprland.dispatch('hl.dsp.focus({ window = "address:' + addr + '" })')
     }
     function panel(page) { Quickshell.execDetached(["noctalia", "msg", "panel-toggle", "control-center", page]) }
 
@@ -135,7 +165,15 @@ PanelWindow {
                 color: Theme.textDim
                 font { family: Theme.font; pointSize: Theme.fontSize }
             }
-            Hit { onClicked: if (media.player && media.player.canTogglePlaying) media.player.togglePlaying() }
+            Hit {
+                // click: go to the app that's playing; right-click: play / pause
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                onClicked: mouse => {
+                    if (!media.player) return
+                    if (mouse.button === Qt.RightButton) { if (media.player.canTogglePlaying) media.player.togglePlaying() }
+                    else bar.goToPlayer(media.player)
+                }
+            }
         }
 
         // a tiny visualiser after the song: 12 bars, 2px wide, 2px apart, in the
