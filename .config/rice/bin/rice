@@ -234,7 +234,7 @@ part_web() {
     say "firefox new tab / whatsapp"
     if [ -f /usr/lib/firefox/rice.cfg ]; then ok "new tab page (autoconfig)"
     else warn "new tab page not installed: sudo $RICE/system/install.sh"; fi
-    [ -e "$RICE/firefox/wallpaper.jpg" ] && ok "new tab wallpaper" || { [ "$MODE" = apply ] && sh "$RICE/firefox/sync-wallpaper.sh" && fixed "new tab wallpaper" || warn "new tab wallpaper missing"; }
+    [ -e "$RICE/firefox/wallpaper.jpg" ] && [ -e "$(dirname "$(readlink -f "$RICE/firefox/newtab.html")")/wallpaper.jpg" ] && ok "new tab wallpaper" || { [ "$MODE" = apply ] && sh "$RICE/firefox/sync-wallpaper.sh" && fixed "new tab wallpaper" || warn "new tab wallpaper missing"; }
     local p; p=$(ff_profile) || true
     if [ -n "$p" ] && jq -e '.addons[] | select(.id == "momentum@momentumdash.com" and .active)' "$p/extensions.json" >/dev/null 2>&1; then
         if [ "$MODE" = apply ] && ! running firefox; then
