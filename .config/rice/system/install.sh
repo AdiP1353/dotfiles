@@ -43,6 +43,9 @@ pref("general.config.obscure_value", 0);
 pref("general.config.sandbox_enabled", false);
 CFG
     home=$(getent passwd "$user" | cut -d: -f6)
+    # Firefox shows the page at its real place (newtab.html is a link into
+    # ~/dotfiles), so both paths count as the blank new tab
+    real=$(readlink -f "$home/.config/rice/firefox/newtab.html")
     cat > /usr/lib/firefox/rice.cfg <<CFG
 // rice: new tabs show ~/.config/rice/firefox/newtab.html (first line must be a comment)
 try {
@@ -50,8 +53,9 @@ try {
   const { AboutNewTab } = ChromeUtils.importESModule("resource:///modules/AboutNewTab.sys.mjs");
   AboutNewTab.newTabURL = url;
   // count it as a blank page: the address bar stays empty and focused, ready to type
+  const blank = [url, "file://$real"];
   Services.obs.addObserver(win => {
-    try { if (win.gInitialPages && !win.gInitialPages.includes(url)) win.gInitialPages.push(url); } catch (e) {}
+    try { for (const u of blank) if (win.gInitialPages && !win.gInitialPages.includes(u)) win.gInitialPages.push(u); } catch (e) {}
   }, "browser-delayed-startup-finished");
 } catch (e) {}
 CFG
