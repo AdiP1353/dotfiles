@@ -5,7 +5,7 @@
 [theme.templates.user.rice_colors]
 input_path  = "$XDG_CONFIG_HOME/noctalia/templates/rice-colors.json"
 output_path = "$XDG_STATE_HOME/rice/colors.json"
-post_hook   = "python3 -I $XDG_CONFIG_HOME/rice/qt/make-kvantum.py; python3 -I $XDG_CONFIG_HOME/rice/bin/rice-viz-colour; python3 -I $XDG_CONFIG_HOME/fastfetch/make-logo.py"
+post_hook   = "python3 -I $XDG_CONFIG_HOME/rice/qt/make-kvantum.py; python3 -I $XDG_CONFIG_HOME/rice/bin/rice-viz-colour"
 
 # Hyprland window borders (and group/shadow colors) from the wallpaper.
 # Loaded last by ~/.config/hypr/hyprland.lua: require("config.wallpaper_colors")
