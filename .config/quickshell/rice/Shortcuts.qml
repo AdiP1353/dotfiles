@@ -1,6 +1,6 @@
 // Shortcuts window (SUPER + H), minimal style (THEME.md §3): one 2px box with
 // a "search:" field on top and your keybinds below.
-//   nothing typed   all keybinds in four plain columns, keys bright, what they do dim
+//   nothing typed   all keybinds in four plain columns, keys in the accent, what they do dim
 //   typing          a fuzzy search over the keys, what they do and extra words
 //                   for each (e.g. "mv ws", "screensht", "volume", "new desktop");
 //                   the best matches first, matched letters bright
@@ -255,13 +255,14 @@ PanelWindow {
                                     required property var modelData
                                     spacing: Theme.s3
                                     Text {
-                                        width: 172
+                                        width: 214          // the longest key fits ("super ctrl shift left right")
+                                        elide: Text.ElideRight
                                         text: modelData[0]
-                                        color: Theme.text
+                                        color: Theme.primary     // keys in the accent, so they stand apart from what they do
                                         font { family: Theme.font; pointSize: Theme.small }
                                     }
                                     Text {
-                                        width: 176
+                                        width: 168
                                         elide: Text.ElideRight
                                         text: modelData[1]
                                         color: Theme.textDim
@@ -291,7 +292,7 @@ PanelWindow {
                                 width: 260
                                 anchors.verticalCenter: parent.verticalCenter
                                 textFormat: Text.RichText
-                                text: win.highlight(res.modelData.keys, Theme.text, Theme.text)
+                                text: win.highlight(res.modelData.keys, Theme.primary, Theme.text)
                                 font { family: Theme.font; pointSize: Theme.fontSize; bold: false }
                             }
                             Rectangle {   // accent underline on the selected result, like the launcher
