@@ -47,8 +47,7 @@ PanelWindow {
             ["super shift arrows", "move window", "swap position"],
             ["super drag", "move window (mouse)", "left click drag"],
             ["super right-drag", "resize window (mouse)", "size bigger smaller"],
-            ["alt tab", "switch windows", "switcher next"],
-            ["super tab", "window overview", "expose all windows"] ] },
+            ["alt tab", "switch windows", "switcher next overview"] ] },
         { title: "apps", rows: [
             ["super space", "launcher", "run open apps search start"],
             ["super w", "wallpapers", "wallhaven picker background"],

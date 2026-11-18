@@ -88,6 +88,8 @@ PanelWindow {
         }
         function list(): string { return SystemTray.items.values.map(i => i.id).join(", ") }
         function close(): void { trayMenu.close() }
+        // dry run: which window a left-click on tray item n would go to
+        function trayTarget(n: int): string { const it = SystemTray.items.values[n]; if (!it) return "none"; const w = RiceApps.windowFor(bar.trayHints(it)); return it.id + " -> " + (w ? w.lastIpcObject.class + " on " + w.lastIpcObject.workspace.name : "no window (would ask the app to show itself)") }
         // for testing the update colours: set the shown count (the hourly check resets it)
         function testUpdates(n: int): void { upd.count = n }
         // dry run for testing: which window clicking "now playing" would go to
@@ -119,6 +121,31 @@ PanelWindow {
         if (ws && String(ws.name).startsWith("special:"))
             Hyprland.dispatch('hl.dsp.window.move({ workspace = "' + Hyprland.focusedWorkspace.name + '", window = "address:' + addr + '" })')
         Hyprland.dispatch('hl.dsp.focus({ window = "address:' + addr + '" })')
+    }
+    // Left-click a tray icon: take you to that app's window (out of the
+    // background if hidden). If it has no window (closed to the tray), ask the
+    // app to show itself, then go to the window once it appears.
+    function trayHints(item) {
+        const id = String(item.id || item.title || "").toLowerCase()
+        const base = id.replace(/_status_icon_\d+$/, "").replace(/-client$/, "").replace(/_client$/, "")
+        return [base, String(item.title || "").toLowerCase()].filter(h => h)
+    }
+    function goToTrayApp(item) {
+        const w = RiceApps.windowFor(trayHints(item))
+        if (w) { RiceApps.focus(w); return }
+        item.activate()
+        trayRetry.item = item; trayRetry.tries = 0; trayRetry.restart()
+    }
+    Timer {
+        id: trayRetry
+        property var item: null
+        property int tries: 0
+        interval: 300; repeat: true
+        onTriggered: {
+            const w = item ? RiceApps.windowFor(bar.trayHints(item)) : null
+            if (w) { RiceApps.focus(w); stop() }
+            else if (++tries >= 10) stop()
+        }
     }
     function panel(page) { Quickshell.execDetached(["noctalia", "msg", "panel-toggle", "control-center", page]) }
 
@@ -254,7 +281,7 @@ PanelWindow {
                             // right-click: the app's menu in the rice's style, with "close <app>"
                             if (mouse.button === Qt.RightButton && modelData.hasMenu)
                                 trayMenu.show(modelData, bar.mapFromItem(parent, parent.width / 2, 0).x)
-                            else modelData.activate()
+                            else bar.goToTrayApp(modelData)
                         }
                     }
                 }

@@ -29,10 +29,6 @@ input_path  = "$XDG_CONFIG_HOME/noctalia/templates/rice-firefox.css"
 output_path = "$XDG_CONFIG_HOME/rice/firefox/rice-colors.css"
 post_hook   = "sh $XDG_CONFIG_HOME/rice/firefox/sync-wallpaper.sh"
 
-# GNOME Text Editor (and any GtkSourceView 5 app): a "rice" colour scheme.
-[theme.templates.user.rice_gtksourceview]
-input_path  = "$XDG_CONFIG_HOME/noctalia/templates/rice-gtksourceview.xml"
-output_path = "$XDG_DATA_HOME/gtksourceview-5/styles/rice.xml"
 
 # Discord (Vesktop): noctalia's Midnight theme in the wallpaper's colours, only
 # for Vesktop (the community "discord" template would write to every client).

@@ -102,16 +102,14 @@ hl.bind(mainMod .. " + Left",  hl.dsp.focus({ direction = "left" }))
 hl.bind(mainMod .. " + Right", hl.dsp.focus({ direction = "right" }))
 hl.bind(mainMod .. " + Up",    hl.dsp.focus({ direction = "up" }))
 hl.bind(mainMod .. " + Down",  hl.dsp.focus({ direction = "down" }))
--- Window switcher (~/.config/quickshell/rice/Switcher.qml): hold ALT, Tab to move, let go to switch
-hl.bind("ALT + Tab",           hl.dsp.exec_cmd("qs -c rice ipc call switcher next"))
-hl.bind("ALT + SHIFT + Tab",   hl.dsp.exec_cmd("qs -c rice ipc call switcher prev"))
 -- Shortcuts window (~/.config/quickshell/rice/Shortcuts.qml)
 hl.bind(mainMod .. " + H",     hl.dsp.exec_cmd("qs -c rice ipc call shortcuts toggle"))
 hl.bind(mainMod .. " + M",     hl.dsp.exec_cmd("qs -c rice ipc call windowmenu toggle"))
 -- Copilot key: drop-down terminal. It sends SUPER + SHIFT + key code 201
 -- (F23 on paper, but this layout gives that key no name), so bind the code.
 hl.bind("SUPER + SHIFT + code:201", toggleDropdown)
-hl.bind(mainMod .. " + Tab",   hl.dsp.exec_cmd(noctCall .. "window-switcher"))
+-- ALT + Tab: noctalia's window switcher (was on SUPER + Tab)
+hl.bind("ALT + Tab",           hl.dsp.exec_cmd(noctCall .. "window-switcher"))
 
 -- Move active window around workspaces & monitors
 hl.bind(mainMod .. " + SHIFT + Up",                   hl.dsp.window.move({ direction = "u" }))

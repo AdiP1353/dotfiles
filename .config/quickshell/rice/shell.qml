@@ -15,6 +15,8 @@ import Quickshell
 import Quickshell.Io
 
 ShellRoot {
+    // read the launcher's /setups file straight away (singletons load lazily)
+    Component.onCompleted: console.log("rice: " + Setups.list.length + " setups")
     Variants {
         model: Quickshell.screens
         Bar {}
@@ -25,22 +27,10 @@ ShellRoot {
     }
 
     Launcher { id: launcher }
-    Switcher { id: switcher }
     Shortcuts { id: shortcuts }
     DisplaySwitcher { id: display }
     WindowMenu { id: windowMenu }
 
-    IpcHandler {
-        target: "switcher"
-        function next(): void { switcher.step(1) }      // ALT + Tab
-        function prev(): void { switcher.step(-1) }     // ALT + Shift + Tab
-        function open(): void { switcher.show(0) }
-        function close(): void { switcher.close() }
-        function select(i: int): void { switcher.selected = i }
-        function pick(): void { switcher.pick() }
-        function style(v: string): void { switcher.variant = v }   // strip | split | grid
-        function state(): string { return (switcher.open ? "open " : "closed ") + switcher.selected + "/" + switcher.windows.length }
-    }
     IpcHandler {
         target: "shortcuts"
         function toggle(): void { shortcuts.toggle() }
@@ -55,6 +45,19 @@ ShellRoot {
         function close(): void { display.close() }
         function apply(): void { display.apply() }
         function state(): string { return (display.open ? "open " : "closed ") + display.current + " sel:" + display.selected + " ext:" + display.external }
+    }
+
+    IpcHandler {   // launcher setups (Setups.qml): also usable from keys / scripts
+        target: "setups"
+        function run(name: string): void { Setups.run(name) }
+        function list(): string { return Setups.list.map(x => x.name).join(", ") }
+        // which app each line of a setup would open (dry run)
+        function check(name: string): string {
+            const x = Setups.list.find(s => s.name === name)
+            if (!x) return "no setup " + name
+            return x.apps.map(a => a.ws + ": " + (a.app.startsWith("$") ? a.app : ((Setups.entryFor(a.app) || {}).id || "NOT FOUND (" + a.app + ")"))
+                + (a.app.startsWith("$") ? "" : (RiceApps.windowFor(RiceApps.hintsFor(Setups.entryFor(a.app))) ? " (open: will move)" : " (will start)"))).join(" | ")
+        }
     }
 
     IpcHandler {   // the bar's toggles (Status.qml): SUPER + SHIFT + D / A

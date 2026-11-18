@@ -6,7 +6,10 @@
 // names, the selected one bright with an accent underline.
 // Keys: type to filter, Up/Down (or Tab) to move, Enter to launch, Esc to close.
 // Apps start through uwsm, like the rest of the desktop's launchers.
-// With nothing typed, your most-used apps come first.
+// With nothing typed, your most-used apps come first. An app that's already
+// open is focused (brought out of the background if hidden), not started again.
+// "/" lists your setups (~/.config/rice/setups.conf): "/study" opens its apps
+// on their workspaces; "/edit" opens the file.
 
 import QtQuick
 import Quickshell
@@ -82,13 +85,27 @@ PanelWindow {
         }))
     }
 
-    readonly property var rows: appRows()
+    // "/name": the setups from ~/.config/rice/setups.conf (Setups.qml), and
+    // "/edit" to open that file
+    function setupRows() {
+        const q = term.slice(1).toLowerCase()
+        const r = Setups.list.filter(x => x.name.startsWith(q) || (q && x.name.includes(q)))
+            .slice(0, maxRows - 1).map(x => ({
+                kind: "setup", name: x.name, icon: "", label: "/" + x.name,
+                detail: x.about || x.apps.map(a => a.app.replace(/^\$\s*/, "")).join(", ")
+            }))
+        if ("edit".startsWith(q)) r.push({ kind: "edit", icon: "", label: "/edit", detail: "change the setups (setups.conf)" })
+        return r
+    }
+
+    readonly property var rows: term.startsWith("/") ? setupRows() : appRows()
 
     function activate(row) {
         if (!row) return
-        const id = row.entry.id.endsWith(".desktop") ? row.entry.id : row.entry.id + ".desktop"
+        if (row.kind === "setup") { Setups.run(row.name); close(); return }
+        if (row.kind === "edit") { Quickshell.execDetached(["gnome-text-editor", Setups.path]); close(); return }
         const c = Object.assign({}, usage.counts || {}); c[row.entry.id] = (c[row.entry.id] || 0) + 1; usage.counts = c
-        Quickshell.execDetached(["uwsm", "app", "--", id])
+        RiceApps.openOrFocus(row.entry)      // already open: take you to it; else start it
         close()
     }
 

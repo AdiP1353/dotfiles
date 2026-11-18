@@ -10,12 +10,12 @@ function fish_greeting
         fastfetch
     else if test "$TERM" = xterm-kitty
         fastfetch --logo-type kitty-direct --logo $logo \
-            --logo-width 36 --logo-height 11 --logo-padding-top 6 --logo-padding-right 3
+            --logo-width 36 --logo-height 11 --logo-padding-top 2 --logo-padding-right 3
     else
         # logo.ansi: the picture as coloured blocks (make-logo.py), works anywhere
         test -f ~/.config/fastfetch/logo.ansi; or python3 -I ~/.config/fastfetch/make-logo.py >/dev/null
         fastfetch --logo-type file-raw --logo ~/.config/fastfetch/logo.ansi \
-            --logo-padding-top 6 --logo-padding-right 3
+            --logo-padding-top 2 --logo-padding-right 3
     end
 end
 

@@ -127,7 +127,7 @@ wallpaper_scheme = "m3-tonal-spot"   # calm palette; "vibrant" was tried and was
 builtin_ids = [ "gtk3", "gtk4", "kcolorscheme", "qt" ]
 # Obsidian: CSS snippet in each vault.
 enable_community_templates = true
-community_ids = [ "obsidian", "zed", "spicetify-noctalia" ]
+community_ids = [ "obsidian", "spicetify-noctalia" ]   # zed: fixed theme, not the wallpaper
 
 [widget.clock]
 color = "secondary"

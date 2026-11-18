@@ -37,8 +37,7 @@ part_colors() {
         else warn "noctalia is not running; colours re-render when it starts"; fi
     else
         for f in "$HOME/.local/state/rice/colors.json" "$RICE/firefox/rice-colors.css" \
-                 "$HOME/.local/share/gtksourceview-5/styles/rice.xml" \
-                 "$HOME/.config/spicetify/Themes/Rice/color.ini" \
+                                  "$HOME/.config/spicetify/Themes/Rice/color.ini" \
                  "$HOME/.config/vesktop/themes/noctalia.theme.css" \
                  "$HOME/.local/state/rice/viz.json"; do
             [ -s "$f" ] && ok "${f/#$HOME/\~}" || warn "${f/#$HOME/\~} missing (rice apply colors)"
@@ -165,12 +164,14 @@ part_discord() {
 
 # ---------------------------------------------------------------- editors
 part_editor() {
-    say "editors"
-    gset org.gnome.TextEditor style-scheme rice
+    say "editors (fixed code colours, never the wallpaper)"
+    [ -f "$HOME/.local/share/gtksourceview-5/styles/rice-code.xml" ] && ok "text editor scheme rice-code" || {
+        [ "$MODE" = apply ] && mkdir -p "$HOME/.local/share/gtksourceview-5/styles" && cp "$RICE/editors/rice-code.xml" "$HOME/.local/share/gtksourceview-5/styles/" && fixed "rice-code scheme installed" || warn "rice-code scheme missing"; }
+    gset org.gnome.TextEditor style-scheme rice-code
     local z="$HOME/.config/zed/settings.json"
     if [ -f "$z" ]; then
-        grep -q '"dark": "Noctalia Dark"' "$z" && grep -q '"ui_font_family": "JetBrainsMono Nerd Font"' "$z" \
-            && ok "zed: Noctalia Dark, JetBrains Mono" || warn "zed settings lost the theme or font (THEME.md §5)"
+        grep -q '"dark": "One Dark"' "$z" && grep -q '"ui_font_family": "JetBrainsMono Nerd Font"' "$z" \
+            && ok "zed: One Dark, JetBrains Mono" || warn "zed settings lost its fixed theme or font (THEME.md §5)"
     fi
 }
 
