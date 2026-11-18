@@ -33,7 +33,8 @@ Singleton {
 
     Process {
         id: proc
-        running: cava.active
+        // started by onActiveChanged / the restart timer below, stopped when music stops
+        running: false
         command: ["cava", "-p", Quickshell.env("HOME") + "/.config/rice/cava/raw.conf"]
         stdout: SplitParser {
             onRead: line => {
@@ -43,6 +44,10 @@ Singleton {
                 cava.values = out
             }
         }
-        onRunningChanged: if (!running) cava.values = []
+        onRunningChanged: if (!running) { cava.values = []; if (cava.active) restart.restart() }
     }
+    // if cava stops while music is still playing (crash, new settings), start it again
+    Timer { id: restart; interval: 1000; onTriggered: if (cava.active && !proc.running) proc.running = true }
+    onActiveChanged: proc.running = active
+    Component.onCompleted: proc.running = active
 }
